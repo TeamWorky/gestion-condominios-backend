@@ -57,7 +57,10 @@ export class EmailService {
           { error: error.message },
         );
       } else {
-        this.logger.log('SMTP connection verified successfully', EmailService.name);
+        this.logger.log(
+          'SMTP connection verified successfully',
+          EmailService.name,
+        );
       }
     });
   }
@@ -67,7 +70,9 @@ export class EmailService {
    */
   async sendEmail(emailDto: SendEmailDto): Promise<void> {
     if (!this.transporter) {
-      throw new Error('SMTP transporter not initialized. Check SMTP configuration.');
+      throw new Error(
+        'SMTP transporter not initialized. Check SMTP configuration.',
+      );
     }
 
     const { to, subject, template, html, text, variables = {} } = emailDto;
@@ -77,7 +82,10 @@ export class EmailService {
 
     // Use template if provided
     if (template && template !== EmailTemplate.CUSTOM) {
-      const templateContent = this.templatesService.getTemplate(template, variables);
+      const templateContent = this.templatesService.getTemplate(
+        template,
+        variables,
+      );
       emailHtml = templateContent.html;
       emailText = templateContent.text;
     }
@@ -86,7 +94,9 @@ export class EmailService {
       throw new Error('Email content (html or text) is required');
     }
 
-    const from = this.configService.get<string>('SMTP_FROM') || this.configService.get<string>('SMTP_USER');
+    const from =
+      this.configService.get<string>('SMTP_FROM') ||
+      this.configService.get<string>('SMTP_USER');
 
     try {
       const info = await this.transporter.sendMail({
@@ -97,15 +107,11 @@ export class EmailService {
         text: emailText,
       });
 
-      this.logger.log(
-        `Email sent successfully to ${to}`,
-        EmailService.name,
-        {
-          to,
-          subject,
-          messageId: info.messageId,
-        },
-      );
+      this.logger.log(`Email sent successfully to ${to}`, EmailService.name, {
+        to,
+        subject,
+        messageId: info.messageId,
+      });
     } catch (error) {
       this.logger.error(
         `Failed to send email to ${to}`,
@@ -124,14 +130,21 @@ export class EmailService {
   /**
    * Send welcome email
    */
-  async sendWelcomeEmail(to: string, name: string, loginUrl?: string): Promise<void> {
+  async sendWelcomeEmail(
+    to: string,
+    name: string,
+    loginUrl?: string,
+  ): Promise<void> {
     await this.sendEmail({
       to,
       subject: 'Welcome to our platform!',
       template: EmailTemplate.WELCOME,
       variables: {
         name,
-        loginUrl: loginUrl || this.configService.get<string>('APP_URL', 'http://localhost:3000') + '/login',
+        loginUrl:
+          loginUrl ||
+          this.configService.get<string>('APP_URL', 'http://localhost:3000') +
+            '/login',
       },
     });
   }
@@ -139,7 +152,12 @@ export class EmailService {
   /**
    * Send password reset email
    */
-  async sendPasswordResetEmail(to: string, name: string, resetUrl: string, expiresIn = '1 hour'): Promise<void> {
+  async sendPasswordResetEmail(
+    to: string,
+    name: string,
+    resetUrl: string,
+    expiresIn = '1 hour',
+  ): Promise<void> {
     await this.sendEmail({
       to,
       subject: 'Reset Your Password',
@@ -155,7 +173,12 @@ export class EmailService {
   /**
    * Send email verification email
    */
-  async sendEmailVerificationEmail(to: string, name: string, verifyUrl: string, expiresIn = '24 hours'): Promise<void> {
+  async sendEmailVerificationEmail(
+    to: string,
+    name: string,
+    verifyUrl: string,
+    expiresIn = '24 hours',
+  ): Promise<void> {
     await this.sendEmail({
       to,
       subject: 'Verify Your Email Address',
@@ -168,10 +191,3 @@ export class EmailService {
     });
   }
 }
-
-
-
-
-
-
-

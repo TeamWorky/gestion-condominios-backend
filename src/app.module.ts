@@ -19,6 +19,7 @@ import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
 import { RequestIdMiddleware } from './middlewares/request-id.middleware';
 import { envValidationSchema } from './config/env.validation';
+import { CondominiosModule } from './condominios/condominios.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { envValidationSchema } from './config/env.validation';
     HealthModule,
     UsersModule,
     AuthModule,
+    CondominiosModule,
   ],
   controllers: [AppController],
   providers: [
@@ -91,6 +93,3 @@ export class AppModule implements NestModule {
     consumer.apply(RequestIdMiddleware).forRoutes('*path');
   }
 }
-
-
-

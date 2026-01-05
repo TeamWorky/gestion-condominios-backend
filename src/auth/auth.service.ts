@@ -5,7 +5,10 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { UnauthorizedException, AlreadyExistsException } from '../common/exceptions/business.exception';
+import {
+  UnauthorizedException,
+  AlreadyExistsException,
+} from '../common/exceptions/business.exception';
 import { User } from '../users/entities/user.entity';
 
 @Injectable()
@@ -17,7 +20,9 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const existingUser = await this._usersService.findByEmail(registerDto.email);
+    const existingUser = await this._usersService.findByEmail(
+      registerDto.email,
+    );
 
     if (existingUser) {
       throw new AlreadyExistsException('Email');
@@ -42,15 +47,40 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const user = await this.validateUser(loginDto.email, loginDto.password);
 
-    const tokens = await this.generateTokens(user);
+    // Cargar los condominios del usuario
+    const userWithCondominios = await this._usersService.findOneWithCondominios(
+      user.id,
+    );
+
+    const tokens = await this.generateTokens(user, null);
     await this._usersService.updateRefreshToken(user.id, tokens.refreshToken);
 
-    const { password, refreshToken, ...result } = user;
+    const { password, refreshToken, ...result } = userWithCondominios;
 
     return {
       user: result,
+      condominios: result.condominios || [],
       ...tokens,
     };
+  }
+
+  async selectCondominio(userId: string, condominioId: string) {
+    const user = await this._usersService.findOneWithCondominios(userId);
+
+    // Verificar que el usuario tiene acceso a este condominio
+    const hasAccess = user.condominios?.some((c) => c.id === condominioId);
+
+    if (!hasAccess) {
+      throw new UnauthorizedException(
+        'User does not have access to this condominio',
+      );
+    }
+
+    // Generar nuevos tokens con el condominioId
+    const tokens = await this.generateTokens(user, condominioId);
+    await this._usersService.updateRefreshToken(user.id, tokens.refreshToken);
+
+    return tokens;
   }
 
   async logout(userId: string) {
@@ -64,7 +94,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const refreshTokenMatches = await bcrypt.compare(refreshToken, user.refreshToken);
+    const refreshTokenMatches = await bcrypt.compare(
+      refreshToken,
+      user.refreshToken,
+    );
 
     if (!refreshTokenMatches) {
       throw new UnauthorizedException('Invalid refresh token');
@@ -96,15 +129,20 @@ export class AuthService {
     return user;
   }
 
-  private async generateTokens(user: User) {
+  private async generateTokens(user: User, condominioId: string | null = null) {
     const payload = {
       sub: user.id,
       email: user.email,
       role: user.role,
+      condominioId,
     };
 
-    const jwtSecret = this._configService.get<string>('JWT_SECRET') || 'default-secret-change-me';
-    const jwtRefreshSecret = this._configService.get<string>('JWT_REFRESH_SECRET') || 'default-refresh-secret-change-me';
+    const jwtSecret =
+      this._configService.get<string>('JWT_SECRET') ||
+      'default-secret-change-me';
+    const jwtRefreshSecret =
+      this._configService.get<string>('JWT_REFRESH_SECRET') ||
+      'default-refresh-secret-change-me';
 
     const [accessToken, refreshToken] = await Promise.all([
       this._jwtService.signAsync(payload, {

@@ -7,11 +7,17 @@ import {
   UseGuards,
   Version,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { SelectCondominioDto } from './dto/select-condominio.dto';
 import { ResponseUtil } from '../utils/response.util';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -28,7 +34,10 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User successfully registered' })
-  @ApiResponse({ status: 400, description: 'Bad request - Email already exists' })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - Email already exists',
+  })
   async register(@Body() registerDto: RegisterDto) {
     const result = await this._authService.register(registerDto);
     return ResponseUtil.success(result, 'User registered successfully');
@@ -44,6 +53,28 @@ export class AuthController {
   async login(@Body() loginDto: LoginDto) {
     const result = await this._authService.login(loginDto);
     return ResponseUtil.success(result, 'Login successful');
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('select-condominio')
+  @Version('1')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Select a condominio to work with' })
+  @ApiResponse({ status: 200, description: 'Condominio selected successfully' })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized or no access to condominio',
+  })
+  async selectCondominio(
+    @CurrentUser() user: any,
+    @Body() selectCondominioDto: SelectCondominioDto,
+  ) {
+    const tokens = await this._authService.selectCondominio(
+      user.sub,
+      selectCondominioDto.condominioId,
+    );
+    return ResponseUtil.success(tokens, 'Condominio selected successfully');
   }
 
   @UseGuards(JwtAuthGuard)
@@ -66,8 +97,14 @@ export class AuthController {
   @ApiOperation({ summary: 'Refresh access token' })
   @ApiResponse({ status: 200, description: 'Tokens refreshed successfully' })
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
-  async refreshTokens(@Body() refreshTokenDto: RefreshTokenDto, @CurrentUser() user: any) {
-    const tokens = await this._authService.refreshTokens(user.sub, refreshTokenDto.refreshToken);
+  async refreshTokens(
+    @Body() refreshTokenDto: RefreshTokenDto,
+    @CurrentUser() user: any,
+  ) {
+    const tokens = await this._authService.refreshTokens(
+      user.sub,
+      refreshTokenDto.refreshToken,
+    );
     return ResponseUtil.success(tokens, 'Tokens refreshed successfully');
   }
 }

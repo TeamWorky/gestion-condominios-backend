@@ -20,17 +20,13 @@ export class EmailProcessor extends WorkerHost {
   async process(job: Job<EmailJobData>): Promise<void> {
     const { to, subject, template, html, text, variables } = job.data;
 
-    this.logger.log(
-      `Processing email job: ${job.id}`,
-      EmailProcessor.name,
-      {
-        jobId: job.id,
-        to,
-        subject,
-        template,
-        attempt: job.attemptsMade + 1,
-      },
-    );
+    this.logger.log(`Processing email job: ${job.id}`, EmailProcessor.name, {
+      jobId: job.id,
+      to,
+      subject,
+      template,
+      attempt: job.attemptsMade + 1,
+    });
 
     try {
       await this.emailService.sendEmail({
@@ -65,10 +61,3 @@ export class EmailProcessor extends WorkerHost {
     }
   }
 }
-
-
-
-
-
-
-
