@@ -34,13 +34,14 @@ export class AuthService {
     });
 
     const tokens = await this.generateTokens(user);
-    await this._usersService.updateRefreshToken(user.id, tokens.refreshToken);
+    await this._usersService.updateRefreshToken(user.id, tokens.hashedRefreshToken);
 
     const { password, refreshToken, ...result } = user;
 
     return {
       user: result,
-      ...tokens,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
     };
   }
 
@@ -53,15 +54,27 @@ export class AuthService {
     );
 
     const tokens = await this.generateTokens(user, null);
-    await this._usersService.updateRefreshToken(user.id, tokens.refreshToken);
+    await this._usersService.updateRefreshToken(user.id, tokens.hashedRefreshToken);
 
     const { password, refreshToken, ...result } = userWithCondominios;
 
-    return {
+    const response = {
       user: result,
       condominios: result.condominios || [],
-      ...tokens,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
     };
+
+    console.log('🔍 Login response structure:', JSON.stringify({
+      hasUser: !!response.user,
+      hasCondominios: !!response.condominios,
+      condominiosCount: response.condominios?.length,
+      hasAccessToken: !!response.accessToken,
+      hasRefreshToken: !!response.refreshToken,
+      userKeys: response.user ? Object.keys(response.user) : [],
+    }, null, 2));
+
+    return response;
   }
 
   async selectCondominio(userId: string, condominioId: string) {
@@ -78,9 +91,12 @@ export class AuthService {
 
     // Generar nuevos tokens con el condominioId
     const tokens = await this.generateTokens(user, condominioId);
-    await this._usersService.updateRefreshToken(user.id, tokens.refreshToken);
+    await this._usersService.updateRefreshToken(user.id, tokens.hashedRefreshToken);
 
-    return tokens;
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
   }
 
   async logout(userId: string) {
@@ -104,9 +120,12 @@ export class AuthService {
     }
 
     const tokens = await this.generateTokens(user);
-    await this._usersService.updateRefreshToken(user.id, tokens.refreshToken);
+    await this._usersService.updateRefreshToken(user.id, tokens.hashedRefreshToken);
 
-    return tokens;
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
   }
 
   private async validateUser(email: string, password: string): Promise<User> {
@@ -120,7 +139,10 @@ export class AuthService {
       throw new UnauthorizedException('User is inactive');
     }
 
-    const isPasswordValid = await user.validatePassword(password);
+    // Usar bcrypt directamente en lugar de user.validatePassword()
+    // porque el objeto puede venir de caché y no ser una instancia de User
+    const bcrypt = require('bcrypt');
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
@@ -159,7 +181,8 @@ export class AuthService {
 
     return {
       accessToken,
-      refreshToken: hashedRefreshToken,
+      refreshToken, // Retornar el token plano al cliente
+      hashedRefreshToken, // El hash para guardar en la DB
     };
   }
 }

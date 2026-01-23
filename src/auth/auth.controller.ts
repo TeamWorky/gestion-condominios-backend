@@ -18,7 +18,6 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { SelectCondominioDto } from './dto/select-condominio.dto';
-import { ResponseUtil } from '../utils/response.util';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
@@ -39,8 +38,7 @@ export class AuthController {
     description: 'Bad request - Email already exists',
   })
   async register(@Body() registerDto: RegisterDto) {
-    const result = await this._authService.register(registerDto);
-    return ResponseUtil.success(result, 'User registered successfully');
+    return await this._authService.register(registerDto);
   }
 
   @Public()
@@ -51,8 +49,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() loginDto: LoginDto) {
-    const result = await this._authService.login(loginDto);
-    return ResponseUtil.success(result, 'Login successful');
+    return await this._authService.login(loginDto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -70,11 +67,10 @@ export class AuthController {
     @CurrentUser() user: any,
     @Body() selectCondominioDto: SelectCondominioDto,
   ) {
-    const tokens = await this._authService.selectCondominio(
+    return await this._authService.selectCondominio(
       user.sub,
       selectCondominioDto.condominioId,
     );
-    return ResponseUtil.success(tokens, 'Condominio selected successfully');
   }
 
   @UseGuards(JwtAuthGuard)
@@ -87,7 +83,7 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async logout(@CurrentUser() user: any) {
     await this._authService.logout(user.sub);
-    return ResponseUtil.success(null, 'Logout successful');
+    return { message: 'Logout successful' };
   }
 
   @Public()
@@ -101,10 +97,9 @@ export class AuthController {
     @Body() refreshTokenDto: RefreshTokenDto,
     @CurrentUser() user: any,
   ) {
-    const tokens = await this._authService.refreshTokens(
+    return await this._authService.refreshTokens(
       user.sub,
       refreshTokenDto.refreshToken,
     );
-    return ResponseUtil.success(tokens, 'Tokens refreshed successfully');
   }
 }
