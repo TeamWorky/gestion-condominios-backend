@@ -12,6 +12,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { SelectCondominioDto } from './dto/select-condominio.dto';
 import { ResponseUtil } from '../utils/response.util';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -43,7 +44,7 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() loginDto: LoginDto) {
     const result = await this._authService.login(loginDto);
-    return ResponseUtil.success(result, 'Login successful');
+    return result; // El TransformInterceptor ya envuelve la respuesta
   }
 
   @UseGuards(JwtAuthGuard)
@@ -57,6 +58,25 @@ export class AuthController {
   async logout(@CurrentUser() user: any) {
     await this._authService.logout(user.sub);
     return ResponseUtil.success(null, 'Logout successful');
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('select-condominio')
+  @Version('1')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Select a condominio and get new tokens with condominioId' })
+  @ApiResponse({ status: 200, description: 'Condominio selected successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized or no access to condominio' })
+  async selectCondominio(
+    @CurrentUser() user: any,
+    @Body() selectCondominioDto: SelectCondominioDto,
+  ) {
+    const tokens = await this._authService.selectCondominio(
+      user.sub,
+      selectCondominioDto.condominioId,
+    );
+    return tokens; // El TransformInterceptor ya envuelve la respuesta
   }
 
   @Public()
