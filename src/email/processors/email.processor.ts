@@ -28,36 +28,27 @@ export class EmailProcessor extends WorkerHost {
       attempt: job.attemptsMade + 1,
     });
 
-    try {
-      await this.emailService.sendEmail({
-        to,
-        subject,
-        template,
-        html,
-        text,
-        variables,
-      });
+    const result = await this.emailService.sendEmail({
+      to,
+      subject,
+      template,
+      html,
+      text,
+      variables,
+    });
 
+    if (result.sent) {
       this.logger.log(
         `Email job completed successfully: ${job.id}`,
         EmailProcessor.name,
         { jobId: job.id, to },
       );
-    } catch (error) {
-      this.logger.error(
-        `Email job failed: ${job.id}`,
-        error.stack,
+    } else {
+      this.logger.warn(
+        `Email job skipped (service disabled): ${job.id}`,
         EmailProcessor.name,
-        {
-          jobId: job.id,
-          to,
-          error: error.message,
-          attempt: job.attemptsMade + 1,
-        },
+        { jobId: job.id, to, reason: result.reason },
       );
-
-      // Re-throw to trigger retry mechanism
-      throw error;
     }
   }
 }

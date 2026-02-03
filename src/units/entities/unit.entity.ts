@@ -1,94 +1,59 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
-  ManyToOne,
-  JoinColumn,
-  OneToMany,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, JoinColumn, Unique } from 'typeorm';
+import { BaseEntity } from '../../common/entities/base.entity';
 import { Building } from '../../buildings/entities/building.entity';
 import { Resident } from '../../residents/entities/resident.entity';
+import { UnitType } from '../../common/enums/unit-type.enum';
 import { UnitStatus } from '../../common/enums/unit-status.enum';
-import { Payment } from '../../payments/entities/payment.entity';
 
-/**
- * Entidad Unit (Unidad/Departamento)
- * Representa una unidad dentro de un edificio
- */
 @Entity('units')
-export class Unit {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+@Unique(['buildingId', 'number'])
+export class Unit extends BaseEntity {
+  @Column({ type: 'uuid', name: 'building_id' })
+  buildingId: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  unitNumber: string;
+  @ManyToOne(() => Building, (building) => building.units, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'building_id' })
+  building: Building;
 
-  @Column({ type: 'int', nullable: true })
-  floor: number;
-
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  block: string;
-
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-  area: number;
+  @Column({ type: 'varchar', length: 50 })
+  number: string;
 
   @Column({ type: 'int', nullable: true })
-  bedrooms: number;
+  floor?: number;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  block?: string;
+
+  @Column({
+    type: 'enum',
+    enum: UnitType,
+    name: 'unit_type',
+    default: UnitType.APARTMENT,
+  })
+  unitType: UnitType;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, name: 'area_m2', nullable: true })
+  areaM2?: number;
+
+  @Column({ type: 'decimal', precision: 5, scale: 4, nullable: true })
+  aliquot?: number;
 
   @Column({ type: 'int', nullable: true })
-  bathrooms: number;
+  bedrooms?: number;
 
-  @Column({ type: 'int', default: 0 })
-  parkingSpots: number;
-
-  @Column({ type: 'int', default: 0 })
-  storageUnits: number;
+  @Column({ type: 'int', nullable: true })
+  bathrooms?: number;
 
   @Column({
     type: 'enum',
     enum: UnitStatus,
-    default: UnitStatus.DISPONIBLE,
+    default: UnitStatus.AVAILABLE,
   })
   status: UnitStatus;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', name: 'is_occupied', default: false })
   isOccupied: boolean;
 
-  // Relación con Building
-  @ManyToOne(() => Building, (building) => building.units, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'buildingId' })
-  building: Building;
-
-  @Column({ type: 'uuid' })
-  buildingId: string;
-
-  // Residente actual
-  @ManyToOne(() => Resident, { nullable: true })
-  @JoinColumn({ name: 'currentResidentId' })
-  currentResident: Resident;
-
-  @Column({ type: 'uuid', nullable: true })
-  currentResidentId: string;
-
-  // Relaciones
   @OneToMany(() => Resident, (resident) => resident.unit)
   residents: Resident[];
-
-  @OneToMany(() => Payment, (payment) => payment.unit)
-  payments: Payment[];
-
-  // Timestamps
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @DeleteDateColumn()
-  deletedAt: Date;
 }

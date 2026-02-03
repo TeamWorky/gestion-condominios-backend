@@ -1,99 +1,45 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
-  ManyToOne,
-  JoinColumn,
-  OneToMany,
-} from 'typeorm';
-import { Condominio } from '../../condominios/entities/condominio.entity';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { BaseEntity } from '../../common/entities/base.entity';
 import { Unit } from '../../units/entities/unit.entity';
+import { User } from '../../users/entities/user.entity';
 import { ResidentType } from '../../common/enums/resident-type.enum';
-import { DocumentType } from '../../common/enums/document-type.enum';
-import { Reservation } from '../../reservations/entities/reservation.entity';
 
-/**
- * Entidad Resident (Residente)
- * Representa un residente o propietario de una unidad
- */
 @Entity('residents')
-export class Resident {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+export class Resident extends BaseEntity {
+  @Column({ type: 'uuid', name: 'user_id', nullable: true })
+  userId?: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  firstName: string;
+  @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'user_id' })
+  user?: User;
 
-  @Column({ type: 'varchar', length: 100 })
-  lastName: string;
+  @Column({ type: 'uuid', name: 'unit_id' })
+  unitId: string;
 
-  @Column({ type: 'varchar', length: 255, unique: true })
-  email: string;
-
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  phone: string;
+  @ManyToOne(() => Unit, (unit) => unit.residents, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'unit_id' })
+  unit: Unit;
 
   @Column({
     type: 'enum',
     enum: ResidentType,
-    default: ResidentType.OWNER,
+    name: 'resident_type',
+    default: ResidentType.TENANT,
   })
   residentType: ResidentType;
 
-  @Column({
-    type: 'enum',
-    enum: DocumentType,
-    default: DocumentType.RUT,
-  })
-  documentType: DocumentType;
+  @Column({ type: 'date', name: 'move_in_date', nullable: true })
+  moveInDate?: Date;
 
-  @Column({ type: 'varchar', length: 100 })
-  documentNumber: string;
+  @Column({ type: 'date', name: 'move_out_date', nullable: true })
+  moveOutDate?: Date;
 
-  @Column({ type: 'boolean', default: true })
+  @Column({ type: 'boolean', name: 'is_primary', default: false })
+  isPrimary: boolean;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  relationship?: string;
+
+  @Column({ type: 'boolean', name: 'is_active', default: true })
   isActive: boolean;
-
-  @Column({ type: 'timestamp', nullable: true })
-  moveInDate: Date;
-
-  @Column({ type: 'timestamp', nullable: true })
-  moveOutDate: Date;
-
-  // Relación con Condominio
-  @ManyToOne(() => Condominio, (condominio) => condominio.residents, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'condominioId' })
-  condominio: Condominio;
-
-  @Column({ type: 'uuid' })
-  condominioId: string;
-
-  // Relación con Unit
-  @ManyToOne(() => Unit, (unit) => unit.residents, {
-    onDelete: 'SET NULL',
-    nullable: true,
-  })
-  @JoinColumn({ name: 'unitId' })
-  unit: Unit;
-
-  @Column({ type: 'uuid', nullable: true })
-  unitId: string;
-
-  // Relaciones
-  @OneToMany(() => Reservation, (reservation) => reservation.resident)
-  reservations: Reservation[];
-
-  // Timestamps
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @DeleteDateColumn()
-  deletedAt: Date;
 }

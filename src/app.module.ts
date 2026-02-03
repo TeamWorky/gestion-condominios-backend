@@ -13,13 +13,16 @@ import { AuthModule } from './auth/auth.module';
 import { LoggerModule } from './logger/logger.module';
 import { QueueModule } from './queue/queue.module';
 import { EmailModule } from './email/email.module';
+import { CondominiumsModule } from './condominiums/condominiums.module';
+import { BuildingsModule } from './buildings/buildings.module';
+import { UnitsModule } from './units/units.module';
+import { ResidentsModule } from './residents/residents.module';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
 import { RequestIdMiddleware } from './middlewares/request-id.middleware';
 import { envValidationSchema } from './config/env.validation';
-import { CondominiosModule } from './condominios/condominios.module';
 
 @Module({
   imports: [
@@ -61,7 +64,10 @@ import { CondominiosModule } from './condominios/condominios.module';
     HealthModule,
     UsersModule,
     AuthModule,
-    CondominiosModule,
+    CondominiumsModule,
+    BuildingsModule,
+    UnitsModule,
+    ResidentsModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,0 +1,8 @@
+export enum UnitType {
+  APARTMENT = 'APARTMENT',
+  HOUSE = 'HOUSE',
+  OFFICE = 'OFFICE',
+  COMMERCIAL = 'COMMERCIAL',
+  PARKING = 'PARKING',
+  STORAGE = 'STORAGE',
+}
