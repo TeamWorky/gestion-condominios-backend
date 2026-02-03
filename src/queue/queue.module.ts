@@ -18,10 +18,3 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
   exports: [BullModule],
 })
 export class QueueModule {}
-
-
-
-
-
-
-

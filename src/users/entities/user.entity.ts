@@ -1,7 +1,15 @@
-import { Entity, Column, BeforeInsert, BeforeUpdate } from 'typeorm';
+import {
+  Entity,
+  Column,
+  BeforeInsert,
+  BeforeUpdate,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { BaseEntity } from '../../common/entities/base.entity';
 import { Role } from '../../common/enums/role.enum';
+import { Condominio } from '../../condominios/entities/condominio.entity';
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -29,6 +37,15 @@ export class User extends BaseEntity {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   refreshToken?: string;
+
+  // Relación Many-to-Many con Condominios
+  @ManyToMany(() => Condominio, { cascade: true })
+  @JoinTable({
+    name: 'user_condominios',
+    joinColumn: { name: 'userId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'condominioId', referencedColumnName: 'id' },
+  })
+  condominios: Condominio[];
 
   @BeforeInsert()
   @BeforeUpdate()

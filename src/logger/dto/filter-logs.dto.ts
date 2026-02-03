@@ -23,26 +23,37 @@ export class FilterLogsDto {
   @Min(1)
   @Max(100)
   @IsOptional()
-  @ApiPropertyOptional({ description: 'Items per page', example: 10, default: 10, maximum: 100 })
+  @ApiPropertyOptional({
+    description: 'Items per page',
+    example: 10,
+    default: 10,
+    maximum: 100,
+  })
   limit?: number = 10;
 
   @IsEnum(LogLevel)
   @IsOptional()
-  @ApiPropertyOptional({ 
-    description: 'Filter by log level', 
+  @ApiPropertyOptional({
+    description: 'Filter by log level',
     enum: LogLevel,
-    example: LogLevel.ERROR 
+    example: LogLevel.ERROR,
   })
   level?: LogLevel;
 
   @IsString()
   @IsOptional()
-  @ApiPropertyOptional({ description: 'Filter by context', example: 'UsersService' })
+  @ApiPropertyOptional({
+    description: 'Filter by context',
+    example: 'UsersService',
+  })
   context?: string;
 
   @IsString()
   @IsOptional()
-  @ApiPropertyOptional({ description: 'Filter by request ID', example: 'req-123' })
+  @ApiPropertyOptional({
+    description: 'Filter by request ID',
+    example: 'req-123',
+  })
   requestId?: string;
 
   @IsString()

@@ -22,7 +22,9 @@ export class HealthController {
         return {
           database: {
             status: isConnected ? 'up' : 'down',
-            message: isConnected ? 'Database is connected' : 'Database is disconnected',
+            message: isConnected
+              ? 'Database is connected'
+              : 'Database is disconnected',
           },
         };
       },
@@ -47,4 +49,3 @@ export class HealthController {
     ]);
   }
 }
-

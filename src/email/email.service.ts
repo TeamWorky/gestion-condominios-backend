@@ -106,7 +106,10 @@ export class EmailService {
 
     // Use template if provided
     if (template && template !== EmailTemplate.CUSTOM) {
-      const templateContent = this.templatesService.getTemplate(template, variables);
+      const templateContent = this.templatesService.getTemplate(
+        template,
+        variables,
+      );
       emailHtml = templateContent.html;
       emailText = templateContent.text;
     }
@@ -115,7 +118,9 @@ export class EmailService {
       throw new Error('Email content (html or text) is required');
     }
 
-    const from = this.configService.get<string>('SMTP_FROM') || this.configService.get<string>('SMTP_USER');
+    const from =
+      this.configService.get<string>('SMTP_FROM') ||
+      this.configService.get<string>('SMTP_USER');
 
     try {
       const info = await this.transporter!.sendMail({
@@ -162,7 +167,10 @@ export class EmailService {
       template: EmailTemplate.WELCOME,
       variables: {
         name,
-        loginUrl: loginUrl || this.configService.get<string>('APP_URL', 'http://localhost:3000') + '/login',
+        loginUrl:
+          loginUrl ||
+          this.configService.get<string>('APP_URL', 'http://localhost:3000') +
+            '/login',
       },
     });
   }
@@ -199,10 +207,3 @@ export class EmailService {
     });
   }
 }
-
-
-
-
-
-
-

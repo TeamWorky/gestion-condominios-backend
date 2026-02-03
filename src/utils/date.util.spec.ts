@@ -22,7 +22,9 @@ describe('DateUtil', () => {
       const result = DateUtil.addDays(date, days);
 
       // Assert
-      expect(result.getTime()).toBe(date.getTime() + days * 24 * 60 * 60 * 1000);
+      expect(result.getTime()).toBe(
+        date.getTime() + days * 24 * 60 * 60 * 1000,
+      );
     });
 
     it('should not mutate original date', () => {
@@ -46,7 +48,9 @@ describe('DateUtil', () => {
       const result = DateUtil.addDays(date, days);
 
       // Assert
-      expect(result.getTime()).toBe(date.getTime() + days * 24 * 60 * 60 * 1000);
+      expect(result.getTime()).toBe(
+        date.getTime() + days * 24 * 60 * 60 * 1000,
+      );
     });
 
     it('should handle month boundaries', () => {
@@ -236,4 +240,3 @@ describe('DateUtil', () => {
     });
   });
 });
-

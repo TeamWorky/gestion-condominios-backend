@@ -5,10 +5,3 @@ export interface EmailJobData extends SendEmailDto {
   attempts?: number;
   createdAt?: Date;
 }
-
-
-
-
-
-
-

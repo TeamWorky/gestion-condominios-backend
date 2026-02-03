@@ -23,5 +23,3 @@ import { LoggerModule } from '../logger/logger.module';
   exports: ['REDIS_CLIENT', RedisCacheService],
 })
 export class RedisModule {}
-
-

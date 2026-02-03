@@ -12,7 +12,11 @@ export class StringUtil {
     return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
   }
 
-  static truncate(text: string, length: number, suffix: string = '...'): string {
+  static truncate(
+    text: string,
+    length: number,
+    suffix: string = '...',
+  ): string {
     if (text.length <= length) {
       return text;
     }
@@ -20,7 +24,8 @@ export class StringUtil {
   }
 
   static generateRandomString(length: number): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
     for (let i = 0; i < length; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));

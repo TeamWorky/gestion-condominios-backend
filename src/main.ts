@@ -25,7 +25,9 @@ async function bootstrap() {
 
   const corsOrigin = configService.get<string>('CORS_ORIGIN') || '*';
   const allowedOrigins =
-    corsOrigin === '*' ? '*' : corsOrigin.split(',').map((origin) => origin.trim());
+    corsOrigin === '*'
+      ? '*'
+      : corsOrigin.split(',').map((origin) => origin.trim());
 
   app.enableCors({
     origin: allowedOrigins,
@@ -55,7 +57,9 @@ async function bootstrap() {
   // Generate OpenAPI specification dynamically
   const config = new DocumentBuilder()
     .setTitle('NestJS Proptech API')
-    .setDescription('Complete backend template with authentication, multi-tenancy, and subscription management')
+    .setDescription(
+      'Complete backend template with authentication, multi-tenancy, and subscription management',
+    )
     .setVersion('1.0')
     .addBearerAuth(
       {
@@ -106,18 +110,17 @@ async function bootstrap() {
 
   // Global error handler for uncaught exceptions
   process.on('uncaughtException', (error: Error) => {
-    loggerService.error(
-      'Uncaught Exception',
-      error.stack,
-      'Bootstrap',
-      { error: error.message, name: error.name },
-    );
+    loggerService.error('Uncaught Exception', error.stack, 'Bootstrap', {
+      error: error.message,
+      name: error.name,
+    });
     process.exit(1);
   });
 
   // Global error handler for unhandled promise rejections
   process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
-    const errorMessage = reason instanceof Error ? reason.message : String(reason);
+    const errorMessage =
+      reason instanceof Error ? reason.message : String(reason);
     const errorStack = reason instanceof Error ? reason.stack : undefined;
     loggerService.error(
       'Unhandled Promise Rejection',

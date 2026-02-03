@@ -15,13 +15,21 @@ export class PaginationDto {
   @Min(1)
   @Max(100)
   @IsOptional()
-  @ApiPropertyOptional({ description: 'Items per page', example: 10, default: 10, maximum: 100 })
+  @ApiPropertyOptional({
+    description: 'Items per page',
+    example: 10,
+    default: 10,
+    maximum: 100,
+  })
   limit?: number = 10;
 
   @Type(() => Boolean)
   @IsBoolean()
   @IsOptional()
-  @ApiPropertyOptional({ description: 'Include soft deleted items', example: false, default: false })
+  @ApiPropertyOptional({
+    description: 'Include soft deleted items',
+    example: false,
+    default: false,
+  })
   includeDeleted?: boolean = false;
 }
-

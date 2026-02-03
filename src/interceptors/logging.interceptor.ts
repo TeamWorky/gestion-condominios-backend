@@ -11,7 +11,7 @@ import { LoggerService } from '../logger/logger.service';
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
   constructor(private readonly logger: LoggerService) {}
-  
+
   // Sensitive fields that should be filtered from logs
   private readonly sensitiveFields = [
     'password',
@@ -113,11 +113,18 @@ export class LoggingInterceptor implements NestInterceptor {
 
     for (const key in sanitized) {
       const lowerKey = key.toLowerCase();
-      
+
       // Check if field is sensitive
-      if (this.sensitiveFields.some((field) => lowerKey.includes(field.toLowerCase()))) {
+      if (
+        this.sensitiveFields.some((field) =>
+          lowerKey.includes(field.toLowerCase()),
+        )
+      ) {
         sanitized[key] = '[REDACTED]';
-      } else if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
+      } else if (
+        typeof sanitized[key] === 'object' &&
+        sanitized[key] !== null
+      ) {
         // Recursively sanitize nested objects
         sanitized[key] = this.sanitizeObject(sanitized[key]);
       }

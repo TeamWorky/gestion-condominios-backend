@@ -1,17 +1,27 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Role } from '../../common/enums/role.enum';
 import { IsStrongPassword } from '../../common/validators/password-strength.validator';
 
 export class CreateUserDto {
-  @ApiProperty({ example: 'admin@example.com', description: 'User email address' })
+  @ApiProperty({
+    example: 'admin@example.com',
+    description: 'User email address',
+  })
   @IsEmail()
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty({ 
-    example: 'SecurePassword123!', 
-    description: 'User password (min 8 chars, must include uppercase, lowercase, number, and special character)' 
+  @ApiProperty({
+    example: 'SecurePassword123!',
+    description:
+      'User password (min 8 chars, must include uppercase, lowercase, number, and special character)',
   })
   @IsString()
   @IsNotEmpty()
@@ -28,7 +38,11 @@ export class CreateUserDto {
   @IsNotEmpty()
   lastName: string;
 
-  @ApiPropertyOptional({ enum: Role, example: Role.USER, description: 'User role' })
+  @ApiPropertyOptional({
+    enum: Role,
+    example: Role.USER,
+    description: 'User role',
+  })
   @IsEnum(Role)
   @IsOptional()
   role?: Role;

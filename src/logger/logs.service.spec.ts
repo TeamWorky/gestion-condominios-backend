@@ -281,7 +281,9 @@ describe('LogsService', () => {
         ]),
       };
 
-      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
+      mockRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as any,
+      );
 
       // Act
       const result = await service.getContexts();
@@ -300,7 +302,9 @@ describe('LogsService', () => {
         getRawMany: jest.fn().mockResolvedValue([]),
       };
 
-      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
+      mockRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as any,
+      );
 
       // Act
       const result = await service.getContexts();
@@ -396,4 +400,3 @@ describe('LogsService', () => {
     });
   });
 });
-

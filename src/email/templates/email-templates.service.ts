@@ -10,7 +10,10 @@ export class EmailTemplatesService {
   /**
    * Get template HTML by type
    */
-  getTemplate(template: EmailTemplate, variables: Record<string, any> = {}): { html: string; text: string } {
+  getTemplate(
+    template: EmailTemplate,
+    variables: Record<string, any> = {},
+  ): { html: string; text: string } {
     switch (template) {
       case EmailTemplate.WELCOME:
         return this.getWelcomeTemplate(variables);
@@ -27,7 +30,10 @@ export class EmailTemplatesService {
     }
   }
 
-  private getWelcomeTemplate(variables: Record<string, any>): { html: string; text: string } {
+  private getWelcomeTemplate(variables: Record<string, any>): {
+    html: string;
+    text: string;
+  } {
     const name = variables.name || 'User';
     const loginUrl = variables.loginUrl || 'https://app.example.com/login';
 
@@ -66,9 +72,13 @@ If you have any questions, feel free to contact our support team.
     return { html: html.trim(), text: text.trim() };
   }
 
-  private getPasswordResetTemplate(variables: Record<string, any>): { html: string; text: string } {
+  private getPasswordResetTemplate(variables: Record<string, any>): {
+    html: string;
+    text: string;
+  } {
     const name = variables.name || 'User';
-    const resetUrl = variables.resetUrl || 'https://app.example.com/reset-password';
+    const resetUrl =
+      variables.resetUrl || 'https://app.example.com/reset-password';
     const expiresIn = variables.expiresIn || '1 hour';
 
     const html = `
@@ -111,9 +121,13 @@ If you didn't request this, please ignore this email or contact support if you h
     return { html: html.trim(), text: text.trim() };
   }
 
-  private getEmailVerificationTemplate(variables: Record<string, any>): { html: string; text: string } {
+  private getEmailVerificationTemplate(variables: Record<string, any>): {
+    html: string;
+    text: string;
+  } {
     const name = variables.name || 'User';
-    const verifyUrl = variables.verifyUrl || 'https://app.example.com/verify-email';
+    const verifyUrl =
+      variables.verifyUrl || 'https://app.example.com/verify-email';
     const expiresIn = variables.expiresIn || '24 hours';
 
     const html = `
@@ -156,9 +170,13 @@ If you didn't create an account, please ignore this email.
     return { html: html.trim(), text: text.trim() };
   }
 
-  private getPasswordChangedTemplate(variables: Record<string, any>): { html: string; text: string } {
+  private getPasswordChangedTemplate(variables: Record<string, any>): {
+    html: string;
+    text: string;
+  } {
     const name = variables.name || 'User';
-    const supportUrl = variables.supportUrl || 'https://app.example.com/support';
+    const supportUrl =
+      variables.supportUrl || 'https://app.example.com/support';
 
     const html = `
       <!DOCTYPE html>
@@ -192,10 +210,15 @@ If you didn't make this change, please contact our support team immediately: ${s
     return { html: html.trim(), text: text.trim() };
   }
 
-  private getAccountLockedTemplate(variables: Record<string, any>): { html: string; text: string } {
+  private getAccountLockedTemplate(variables: Record<string, any>): {
+    html: string;
+    text: string;
+  } {
     const name = variables.name || 'User';
-    const unlockUrl = variables.unlockUrl || 'https://app.example.com/unlock-account';
-    const supportUrl = variables.supportUrl || 'https://app.example.com/support';
+    const unlockUrl =
+      variables.unlockUrl || 'https://app.example.com/unlock-account';
+    const supportUrl =
+      variables.supportUrl || 'https://app.example.com/support';
 
     const html = `
       <!DOCTYPE html>
@@ -235,10 +258,3 @@ If you have any questions, contact our support: ${supportUrl}
     return { html: html.trim(), text: text.trim() };
   }
 }
-
-
-
-
-
-
-

@@ -53,7 +53,16 @@ export class DatabaseTransport extends Transform {
     [key: string]: any;
   }): void {
     // Extract metadata (all fields except level, message, context, requestId, stack, timestamp)
-    const { level, message, msg, context, requestId, stack, timestamp, ...rest } = logData;
+    const {
+      level,
+      message,
+      msg,
+      context,
+      requestId,
+      stack,
+      timestamp,
+      ...rest
+    } = logData;
     const metadata = Object.keys(rest).length > 0 ? rest : undefined;
 
     this.logBuffer.push({
@@ -142,6 +151,8 @@ export class DatabaseTransport extends Transform {
    */
   _final(callback: () => void): void {
     this.clearFlushTimer();
-    this.flush().then(() => callback()).catch(() => callback());
+    this.flush()
+      .then(() => callback())
+      .catch(() => callback());
   }
 }

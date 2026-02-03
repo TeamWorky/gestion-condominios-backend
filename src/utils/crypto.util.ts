@@ -13,7 +13,11 @@ export class CryptoUtil {
     return crypto.randomUUID();
   }
 
-  static compareHash(data: string, hash: string, algorithm: string = 'sha256'): boolean {
+  static compareHash(
+    data: string,
+    hash: string,
+    algorithm: string = 'sha256',
+  ): boolean {
     const dataHash = this.generateHash(data, algorithm);
     return crypto.timingSafeEqual(Buffer.from(dataHash), Buffer.from(hash));
   }

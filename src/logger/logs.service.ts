@@ -14,8 +14,17 @@ export class LogsService {
     private readonly logger: LoggerService,
   ) {}
 
-  async findAll(filterDto: FilterLogsDto): Promise<{ data: Log[]; total: number }> {
-    const { page = 1, limit = 10, level, context, requestId, search } = filterDto;
+  async findAll(
+    filterDto: FilterLogsDto,
+  ): Promise<{ data: Log[]; total: number }> {
+    const {
+      page = 1,
+      limit = 10,
+      level,
+      context,
+      requestId,
+      search,
+    } = filterDto;
 
     const where: FindOptionsWhere<Log> = {};
 

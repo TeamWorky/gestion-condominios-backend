@@ -20,17 +20,13 @@ export class EmailProcessor extends WorkerHost {
   async process(job: Job<EmailJobData>): Promise<void> {
     const { to, subject, template, html, text, variables } = job.data;
 
-    this.logger.log(
-      `Processing email job: ${job.id}`,
-      EmailProcessor.name,
-      {
-        jobId: job.id,
-        to,
-        subject,
-        template,
-        attempt: job.attemptsMade + 1,
-      },
-    );
+    this.logger.log(`Processing email job: ${job.id}`, EmailProcessor.name, {
+      jobId: job.id,
+      to,
+      subject,
+      template,
+      attempt: job.attemptsMade + 1,
+    });
 
     const result = await this.emailService.sendEmail({
       to,
@@ -41,7 +37,7 @@ export class EmailProcessor extends WorkerHost {
       variables,
     });
 
-    if (result.sent) {
+    if (result?.sent) {
       this.logger.log(
         `Email job completed successfully: ${job.id}`,
         EmailProcessor.name,
@@ -51,15 +47,8 @@ export class EmailProcessor extends WorkerHost {
       this.logger.warn(
         `Email job skipped (service disabled): ${job.id}`,
         EmailProcessor.name,
-        { jobId: job.id, to, reason: result.reason },
+        { jobId: job.id, to, reason: result?.reason },
       );
     }
   }
 }
-
-
-
-
-
-
-

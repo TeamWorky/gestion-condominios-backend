@@ -1,9 +1,17 @@
-import { Entity, Column, ManyToOne, OneToMany, JoinColumn, Unique } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+  Unique,
+} from 'typeorm';
 import { BaseEntity } from '../../common/entities/base.entity';
 import { Building } from '../../buildings/entities/building.entity';
 import { Resident } from '../../residents/entities/resident.entity';
 import { UnitType } from '../../common/enums/unit-type.enum';
 import { UnitStatus } from '../../common/enums/unit-status.enum';
+import { Payment } from '../../payments/entities/payment.entity';
 
 @Entity('units')
 @Unique(['buildingId', 'number'])
@@ -11,7 +19,9 @@ export class Unit extends BaseEntity {
   @Column({ type: 'uuid', name: 'building_id' })
   buildingId: string;
 
-  @ManyToOne(() => Building, (building) => building.units, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Building, (building) => building.units, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'building_id' })
   building: Building;
 
@@ -32,7 +42,13 @@ export class Unit extends BaseEntity {
   })
   unitType: UnitType;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, name: 'area_m2', nullable: true })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    name: 'area_m2',
+    nullable: true,
+  })
   areaM2?: number;
 
   @Column({ type: 'decimal', precision: 5, scale: 4, nullable: true })
@@ -56,4 +72,7 @@ export class Unit extends BaseEntity {
 
   @OneToMany(() => Resident, (resident) => resident.unit)
   residents: Resident[];
+
+  @OneToMany(() => Payment, (payment) => payment.unit)
+  payments: Payment[];
 }

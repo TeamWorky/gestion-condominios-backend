@@ -5,7 +5,10 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
-import { AlreadyExistsException, NotFoundException } from '../common/exceptions/business.exception';
+import {
+  AlreadyExistsException,
+  NotFoundException,
+} from '../common/exceptions/business.exception';
 import { Role, RoleHierarchy } from '../common/enums/role.enum';
 import { SoftDeleteRepositoryHelper } from '../common/repositories/base.repository';
 import { LoggerService } from '../logger/logger.service';
@@ -80,7 +83,9 @@ export class UsersService {
     return savedUser;
   }
 
-  async findAll(pagination: PaginationDto): Promise<{ data: User[]; total: number }> {
+  async findAll(
+    pagination: PaginationDto,
+  ): Promise<{ data: User[]; total: number }> {
     const { page = 1, limit = 10, includeDeleted = false } = pagination;
     const cacheKey = CACHE_KEYS.userList(page, limit, includeDeleted);
 
@@ -93,7 +98,17 @@ export class UsersService {
             skip: (page - 1) * limit,
             take: limit,
             order: { createdAt: 'DESC' },
-            select: ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'createdAt', 'updatedAt', 'deletedAt'],
+            select: [
+              'id',
+              'email',
+              'firstName',
+              'lastName',
+              'role',
+              'isActive',
+              'createdAt',
+              'updatedAt',
+              'deletedAt',
+            ],
             includeDeleted,
           },
         );
@@ -111,7 +126,17 @@ export class UsersService {
         this._userRepository,
         id,
         {
-          select: ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'createdAt', 'updatedAt', 'deletedAt'],
+          select: [
+            'id',
+            'email',
+            'firstName',
+            'lastName',
+            'role',
+            'isActive',
+            'createdAt',
+            'updatedAt',
+            'deletedAt',
+          ],
           includeDeleted,
         },
       );
@@ -133,7 +158,17 @@ export class UsersService {
           this._userRepository,
           id,
           {
-            select: ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'createdAt', 'updatedAt', 'deletedAt'],
+            select: [
+              'id',
+              'email',
+              'firstName',
+              'lastName',
+              'role',
+              'isActive',
+              'createdAt',
+              'updatedAt',
+              'deletedAt',
+            ],
             includeDeleted: false,
           },
         );
@@ -150,7 +185,10 @@ export class UsersService {
     return user;
   }
 
-  async findByEmail(email: string, includeDeleted = false): Promise<User | null> {
+  async findByEmail(
+    email: string,
+    includeDeleted = false,
+  ): Promise<User | null> {
     const cacheKey = CACHE_KEYS.userByEmail(email);
 
     return this.cache.getOrSet(
@@ -166,7 +204,24 @@ export class UsersService {
     );
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto, currentUserRole?: Role): Promise<User> {
+  async findOneWithCondominios(id: string): Promise<User> {
+    const user = await this._userRepository.findOne({
+      where: { id },
+      relations: ['condominios'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('User');
+    }
+
+    return user;
+  }
+
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+    currentUserRole?: Role,
+  ): Promise<User> {
     const user = await this.findOne(id);
 
     // Prevent role escalation - users cannot assign themselves higher roles
@@ -175,13 +230,23 @@ export class UsersService {
       const newRoleLevel = RoleHierarchy[updateUserDto.role];
 
       // Only SUPER_ADMIN can assign SUPER_ADMIN role
-      if (updateUserDto.role === Role.SUPER_ADMIN && currentUserRole !== Role.SUPER_ADMIN) {
-        throw new ForbiddenException('Only SUPER_ADMIN can assign SUPER_ADMIN role');
+      if (
+        updateUserDto.role === Role.SUPER_ADMIN &&
+        currentUserRole !== Role.SUPER_ADMIN
+      ) {
+        throw new ForbiddenException(
+          'Only SUPER_ADMIN can assign SUPER_ADMIN role',
+        );
       }
 
       // Cannot assign a role higher than your own
-      if (newRoleLevel >= currentRoleLevel && currentUserRole !== Role.SUPER_ADMIN) {
-        throw new ForbiddenException('You cannot assign a role equal to or higher than your own');
+      if (
+        newRoleLevel >= currentRoleLevel &&
+        currentUserRole !== Role.SUPER_ADMIN
+      ) {
+        throw new ForbiddenException(
+          'You cannot assign a role equal to or higher than your own',
+        );
       }
     }
 
@@ -196,12 +261,17 @@ export class UsersService {
 
   async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
-    await SoftDeleteRepositoryHelper.softDeleteEntity(this._userRepository, user);
+    await SoftDeleteRepositoryHelper.softDeleteEntity(
+      this._userRepository,
+      user,
+    );
 
     // Invalidate cache
     await this.invalidateUserCache(user.id, user.email);
 
-    this.logger.log(`User soft deleted: ${id}`, UsersService.name, { userId: id });
+    this.logger.log(`User soft deleted: ${id}`, UsersService.name, {
+      userId: id,
+    });
   }
 
   /**
@@ -232,18 +302,25 @@ export class UsersService {
    */
   async hardDelete(id: string): Promise<void> {
     const user = await this.findOne(id, true);
-    
+
     // Invalidate cache before deletion
     await this.invalidateUserCache(user.id, user.email);
-    
-    await SoftDeleteRepositoryHelper.hardDeleteEntity(this._userRepository, user);
-    this.logger.warn(`User permanently deleted: ${id}`, UsersService.name, { userId: id });
+
+    await SoftDeleteRepositoryHelper.hardDeleteEntity(
+      this._userRepository,
+      user,
+    );
+    this.logger.warn(`User permanently deleted: ${id}`, UsersService.name, {
+      userId: id,
+    });
   }
 
   /**
    * Find only soft deleted users
    */
-  async findDeleted(pagination: PaginationDto): Promise<{ data: User[]; total: number }> {
+  async findDeleted(
+    pagination: PaginationDto,
+  ): Promise<{ data: User[]; total: number }> {
     const { page = 1, limit = 10 } = pagination;
 
     // Use query builder for efficient pagination at database level
@@ -271,9 +348,12 @@ export class UsersService {
     return { data, total };
   }
 
-  async updateRefreshToken(userId: string, refreshToken: string | null): Promise<void> {
-    await this._userRepository.update(userId, { 
-      refreshToken: refreshToken ?? undefined 
+  async updateRefreshToken(
+    userId: string,
+    refreshToken: string | null,
+  ): Promise<void> {
+    await this._userRepository.update(userId, {
+      refreshToken: refreshToken ?? undefined,
     });
 
     // Invalidate user cache when refresh token changes
@@ -283,7 +363,10 @@ export class UsersService {
   /**
    * Invalidate all cache entries for a user
    */
-  private async invalidateUserCache(userId: string, email: string): Promise<void> {
+  private async invalidateUserCache(
+    userId: string,
+    email: string,
+  ): Promise<void> {
     await Promise.all([
       this.cache.invalidate(CACHE_KEYS.user(userId)),
       this.cache.invalidate(CACHE_KEYS.userByEmail(email)),

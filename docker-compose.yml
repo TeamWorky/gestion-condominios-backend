@@ -3,18 +3,18 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: nest-proptech-postgres
+    container_name: gestion-condominios-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-nest_proptech}
+      POSTGRES_DB: ${POSTGRES_DB:-gestion_condominios}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - proptech-network
+      - condominios-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 10s
@@ -23,14 +23,14 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: nest-proptech-redis
+    container_name: gestion-condominios-redis
     restart: unless-stopped
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
     networks:
-      - proptech-network
+      - condominios-network
     command: redis-server --appendonly yes
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -45,5 +45,5 @@ volumes:
     driver: local
 
 networks:
-  proptech-network:
+  condominios-network:
     driver: bridge

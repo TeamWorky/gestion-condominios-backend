@@ -1,8 +1,9 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../../common/entities/base.entity';
 import { Unit } from '../../units/entities/unit.entity';
 import { User } from '../../users/entities/user.entity';
 import { ResidentType } from '../../common/enums/resident-type.enum';
+import { Reservation } from '../../reservations/entities/reservation.entity';
 
 @Entity('residents')
 export class Resident extends BaseEntity {
@@ -42,4 +43,7 @@ export class Resident extends BaseEntity {
 
   @Column({ type: 'boolean', name: 'is_active', default: true })
   isActive: boolean;
+
+  @OneToMany(() => Reservation, (reservation) => reservation.resident)
+  reservations: Reservation[];
 }

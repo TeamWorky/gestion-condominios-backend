@@ -37,7 +37,7 @@ export class AdminUserSeeder implements OnModuleInit {
         return; // Success, exit loop
       } catch (error) {
         attempt++;
-        
+
         // If it's the last attempt, log error
         if (attempt >= this.MAX_RETRIES) {
           this.logger.error(
@@ -100,10 +100,14 @@ export class AdminUserSeeder implements OnModuleInit {
     }
 
     // Get admin credentials from environment variables
-    const adminEmail = this.configService.get<string>('ADMIN_EMAIL') || 'admin@admin.com';
-    const adminPassword = this.configService.get<string>('ADMIN_PASSWORD') || 'admin';
-    const adminFirstName = this.configService.get<string>('ADMIN_FIRST_NAME') || 'Admin';
-    const adminLastName = this.configService.get<string>('ADMIN_LAST_NAME') || 'User';
+    const adminEmail =
+      this.configService.get<string>('ADMIN_EMAIL') || 'admin@admin.com';
+    const adminPassword =
+      this.configService.get<string>('ADMIN_PASSWORD') || 'admin';
+    const adminFirstName =
+      this.configService.get<string>('ADMIN_FIRST_NAME') || 'Admin';
+    const adminLastName =
+      this.configService.get<string>('ADMIN_LAST_NAME') || 'User';
 
     // Validate email format
     if (!adminEmail || !this.isValidEmail(adminEmail)) {
@@ -172,7 +176,10 @@ export class AdminUserSeeder implements OnModuleInit {
       // Handle specific database errors
       if (error instanceof QueryFailedError) {
         // Constraint error (e.g., duplicate email)
-        if (error.message.includes('unique') || error.message.includes('duplicate')) {
+        if (
+          error.message.includes('unique') ||
+          error.message.includes('duplicate')
+        ) {
           this.logger.log(
             'Admin user already exists (detected by constraint), skipping seed',
             AdminUserSeeder.name,
