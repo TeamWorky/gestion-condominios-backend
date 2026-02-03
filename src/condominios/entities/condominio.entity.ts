@@ -53,11 +53,17 @@ export class Condominio {
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
-  // Relaciones
-  @OneToMany(() => Building, (building) => building.condominio)
+  // Relaciones: Building/Resident de main usan Condominium; se usa type assertion para compatibilidad
+  @OneToMany(
+    () => Building,
+    (building: Building & { condominio?: Condominio }) => building.condominio,
+  )
   buildings: Building[];
 
-  @OneToMany(() => Resident, (resident) => resident.condominio)
+  @OneToMany(
+    () => Resident,
+    (resident: Resident & { condominio?: Condominio }) => resident.condominio,
+  )
   residents: Resident[];
 
   // Timestamps

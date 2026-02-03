@@ -37,7 +37,7 @@ export class EmailProcessor extends WorkerHost {
       variables,
     });
 
-    if (result.sent) {
+    if (result?.sent) {
       this.logger.log(
         `Email job completed successfully: ${job.id}`,
         EmailProcessor.name,
@@ -47,7 +47,7 @@ export class EmailProcessor extends WorkerHost {
       this.logger.warn(
         `Email job skipped (service disabled): ${job.id}`,
         EmailProcessor.name,
-        { jobId: job.id, to, reason: result.reason },
+        { jobId: job.id, to, reason: result?.reason },
       );
     }
   }
