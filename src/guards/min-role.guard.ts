@@ -22,7 +22,7 @@ export class MinRoleGuard implements CanActivate {
     }
 
     const { user } = context.switchToHttp().getRequest();
-    
+
     if (!user || !user.role) {
       return false;
     }

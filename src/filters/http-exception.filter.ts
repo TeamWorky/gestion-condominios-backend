@@ -51,7 +51,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
           url: request.url,
           statusCode: status,
           requestId,
-          error: exception instanceof Error ? exception.message : String(exception),
+          error:
+            exception instanceof Error ? exception.message : String(exception),
         },
       );
     } else {

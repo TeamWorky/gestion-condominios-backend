@@ -6,7 +6,10 @@ import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { LoggerService } from '../logger/logger.service';
 import { RedisCacheService } from '../redis/redis-cache.service';
-import { NotFoundException, AlreadyExistsException } from '../common/exceptions/business.exception';
+import {
+  NotFoundException,
+  AlreadyExistsException,
+} from '../common/exceptions/business.exception';
 import { Role, RoleHierarchy } from '../common/enums/role.enum';
 import { SoftDeleteRepositoryHelper } from '../common/repositories/base.repository';
 
@@ -70,7 +73,8 @@ describe('UsersService', () => {
     user.firstName = overrides?.firstName || 'Test';
     user.lastName = overrides?.lastName || 'User';
     user.role = overrides?.role || Role.USER;
-    user.isActive = overrides?.isActive !== undefined ? overrides.isActive : true;
+    user.isActive =
+      overrides?.isActive !== undefined ? overrides.isActive : true;
     user.refreshToken = overrides?.refreshToken || null;
     user.createdAt = overrides?.createdAt || new Date();
     user.updatedAt = overrides?.updatedAt || new Date();
@@ -118,7 +122,9 @@ describe('UsersService', () => {
       };
       const mockUser = createMockUser(createUserDto);
 
-      (SoftDeleteRepositoryHelper.findOneBy as jest.Mock).mockResolvedValue(null);
+      (SoftDeleteRepositoryHelper.findOneBy as jest.Mock).mockResolvedValue(
+        null,
+      );
       repository.create.mockReturnValue(mockUser);
       repository.save.mockResolvedValue(mockUser);
       cache.invalidatePattern.mockResolvedValue(undefined);
@@ -143,8 +149,12 @@ describe('UsersService', () => {
       };
       const existingUser = createMockUser({ email: createUserDto.email });
 
-      (SoftDeleteRepositoryHelper.findOneBy as jest.Mock).mockResolvedValue(existingUser);
-      (SoftDeleteRepositoryHelper.isDeleted as jest.Mock).mockReturnValue(false);
+      (SoftDeleteRepositoryHelper.findOneBy as jest.Mock).mockResolvedValue(
+        existingUser,
+      );
+      (SoftDeleteRepositoryHelper.isDeleted as jest.Mock).mockReturnValue(
+        false,
+      );
 
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(
@@ -167,9 +177,13 @@ describe('UsersService', () => {
       });
       const restoredUser = createMockUser(createUserDto);
 
-      (SoftDeleteRepositoryHelper.findOneBy as jest.Mock).mockResolvedValue(deletedUser);
+      (SoftDeleteRepositoryHelper.findOneBy as jest.Mock).mockResolvedValue(
+        deletedUser,
+      );
       (SoftDeleteRepositoryHelper.isDeleted as jest.Mock).mockReturnValue(true);
-      (SoftDeleteRepositoryHelper.restoreEntity as jest.Mock).mockResolvedValue(deletedUser);
+      (SoftDeleteRepositoryHelper.restoreEntity as jest.Mock).mockResolvedValue(
+        deletedUser,
+      );
       repository.save.mockResolvedValue(restoredUser);
       cache.invalidate.mockResolvedValue(undefined);
       cache.invalidatePattern.mockResolvedValue(undefined);
@@ -209,7 +223,9 @@ describe('UsersService', () => {
       cache.getOrSet.mockImplementation(async (key, fn) => {
         return await fn();
       });
-      (SoftDeleteRepositoryHelper.findOneById as jest.Mock).mockResolvedValue(mockUser);
+      (SoftDeleteRepositoryHelper.findOneById as jest.Mock).mockResolvedValue(
+        mockUser,
+      );
 
       // Act
       const result = await service.findOne(userId);
@@ -226,7 +242,9 @@ describe('UsersService', () => {
       cache.getOrSet.mockImplementation(async (key, fn) => {
         return await fn();
       });
-      (SoftDeleteRepositoryHelper.findOneById as jest.Mock).mockResolvedValue(null);
+      (SoftDeleteRepositoryHelper.findOneById as jest.Mock).mockResolvedValue(
+        null,
+      );
 
       // Act & Assert
       await expect(service.findOne(userId)).rejects.toThrow(NotFoundException);
@@ -237,7 +255,9 @@ describe('UsersService', () => {
       const userId = 'user-id-123';
       const mockUser = createMockUser({ id: userId, deletedAt: new Date() });
 
-      (SoftDeleteRepositoryHelper.findOneById as jest.Mock).mockResolvedValue(mockUser);
+      (SoftDeleteRepositoryHelper.findOneById as jest.Mock).mockResolvedValue(
+        mockUser,
+      );
 
       // Act
       const result = await service.findOne(userId, true);
@@ -271,7 +291,9 @@ describe('UsersService', () => {
       cache.getOrSet.mockImplementation(async (key, fn) => {
         return await fn();
       });
-      (SoftDeleteRepositoryHelper.findOneBy as jest.Mock).mockResolvedValue(mockUser);
+      (SoftDeleteRepositoryHelper.findOneBy as jest.Mock).mockResolvedValue(
+        mockUser,
+      );
 
       // Act
       const result = await service.findByEmail(email);
@@ -287,7 +309,9 @@ describe('UsersService', () => {
       cache.getOrSet.mockImplementation(async (key, fn) => {
         return await fn();
       });
-      (SoftDeleteRepositoryHelper.findOneBy as jest.Mock).mockResolvedValue(null);
+      (SoftDeleteRepositoryHelper.findOneBy as jest.Mock).mockResolvedValue(
+        null,
+      );
 
       // Act
       const result = await service.findByEmail(email);
@@ -307,7 +331,10 @@ describe('UsersService', () => {
       cache.getOrSet.mockImplementation(async (key, fn) => {
         return await fn();
       });
-      (SoftDeleteRepositoryHelper.findAll as jest.Mock).mockResolvedValue([users, total]);
+      (SoftDeleteRepositoryHelper.findAll as jest.Mock).mockResolvedValue([
+        users,
+        total,
+      ]);
 
       // Act
       const result = await service.findAll(pagination);
@@ -327,7 +354,10 @@ describe('UsersService', () => {
       cache.getOrSet.mockImplementation(async (key, fn) => {
         return await fn();
       });
-      (SoftDeleteRepositoryHelper.findAll as jest.Mock).mockResolvedValue([users, total]);
+      (SoftDeleteRepositoryHelper.findAll as jest.Mock).mockResolvedValue([
+        users,
+        total,
+      ]);
 
       // Act
       const result = await service.findAll(pagination);
@@ -399,7 +429,10 @@ describe('UsersService', () => {
       const userId = 'user-id-123';
       const updateDto = { role: Role.SUPER_ADMIN };
       const existingUser = createMockUser({ id: userId, role: Role.USER });
-      const updatedUser = createMockUser({ ...existingUser, role: Role.SUPER_ADMIN });
+      const updatedUser = createMockUser({
+        ...existingUser,
+        role: Role.SUPER_ADMIN,
+      });
 
       jest.spyOn(service, 'findOne').mockResolvedValue(existingUser);
       repository.save.mockResolvedValue(updatedUser);
@@ -421,7 +454,9 @@ describe('UsersService', () => {
       const mockUser = createMockUser({ id: userId });
 
       jest.spyOn(service, 'findOne').mockResolvedValue(mockUser);
-      (SoftDeleteRepositoryHelper.softDeleteEntity as jest.Mock).mockResolvedValue(mockUser);
+      (
+        SoftDeleteRepositoryHelper.softDeleteEntity as jest.Mock
+      ).mockResolvedValue(mockUser);
       cache.invalidate.mockResolvedValue(undefined);
       cache.invalidatePattern.mockResolvedValue(undefined);
 
@@ -449,7 +484,9 @@ describe('UsersService', () => {
 
       jest.spyOn(service, 'findOne').mockResolvedValue(deletedUser);
       (SoftDeleteRepositoryHelper.isDeleted as jest.Mock).mockReturnValue(true);
-      (SoftDeleteRepositoryHelper.restoreEntity as jest.Mock).mockResolvedValue(restoredUser);
+      (SoftDeleteRepositoryHelper.restoreEntity as jest.Mock).mockResolvedValue(
+        restoredUser,
+      );
       cache.invalidate.mockResolvedValue(undefined);
       cache.invalidatePattern.mockResolvedValue(undefined);
 
@@ -468,7 +505,9 @@ describe('UsersService', () => {
       const activeUser = createMockUser({ id: userId });
 
       jest.spyOn(service, 'findOne').mockResolvedValue(activeUser);
-      (SoftDeleteRepositoryHelper.isDeleted as jest.Mock).mockReturnValue(false);
+      (SoftDeleteRepositoryHelper.isDeleted as jest.Mock).mockReturnValue(
+        false,
+      );
 
       // Act & Assert
       await expect(service.restore(userId)).rejects.toThrow(NotFoundException);
@@ -482,7 +521,9 @@ describe('UsersService', () => {
       const mockUser = createMockUser({ id: userId });
 
       jest.spyOn(service, 'findOne').mockResolvedValue(mockUser);
-      (SoftDeleteRepositoryHelper.hardDeleteEntity as jest.Mock).mockResolvedValue(undefined);
+      (
+        SoftDeleteRepositoryHelper.hardDeleteEntity as jest.Mock
+      ).mockResolvedValue(undefined);
       cache.invalidate.mockResolvedValue(undefined);
       cache.invalidatePattern.mockResolvedValue(undefined);
 
@@ -552,7 +593,9 @@ describe('UsersService', () => {
       expect(result.data).toEqual(deletedUsers);
       expect(result.total).toBe(2);
       expect(mockRepository.createQueryBuilder).toHaveBeenCalledWith('user');
-      expect(mockQueryBuilder.where).toHaveBeenCalledWith('user.deletedAt IS NOT NULL');
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith(
+        'user.deletedAt IS NOT NULL',
+      );
       expect(mockQueryBuilder.skip).toHaveBeenCalledWith(0);
       expect(mockQueryBuilder.take).toHaveBeenCalledWith(10);
     });
@@ -564,7 +607,10 @@ describe('UsersService', () => {
         createMockUser({ id: `${i + 5}`, deletedAt: new Date() }),
       );
 
-      mockQueryBuilder.getManyAndCount.mockResolvedValue([paginatedDeleted, 10]);
+      mockQueryBuilder.getManyAndCount.mockResolvedValue([
+        paginatedDeleted,
+        10,
+      ]);
 
       // Act
       const result = await service.findDeleted(pagination);
@@ -577,4 +623,3 @@ describe('UsersService', () => {
     });
   });
 });
-
