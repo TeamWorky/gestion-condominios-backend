@@ -139,9 +139,7 @@ export class AuthService {
       throw new UnauthorizedException('User is inactive');
     }
 
-    // Usar bcrypt directamente en lugar de user.validatePassword()
-    // porque el objeto puede venir de caché y no ser una instancia de User
-    const bcrypt = require('bcrypt');
+    // Usar bcrypt directamente porque el objeto puede venir de caché y no ser una instancia de User
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
@@ -181,8 +179,8 @@ export class AuthService {
 
     return {
       accessToken,
-      refreshToken, // Retornar el token plano al cliente
-      hashedRefreshToken, // El hash para guardar en la DB
+      refreshToken, // Token plano para retornar al cliente
+      hashedRefreshToken, // Hash para guardar en la DB
     };
   }
 }
