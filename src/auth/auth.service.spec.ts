@@ -4,7 +4,10 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
-import { AlreadyExistsException, UnauthorizedException } from '../common/exceptions/business.exception';
+import {
+  AlreadyExistsException,
+  UnauthorizedException,
+} from '../common/exceptions/business.exception';
 import { User } from '../users/entities/user.entity';
 import { Role } from '../common/enums/role.enum';
 
@@ -24,6 +27,7 @@ describe('AuthService', () => {
     create: jest.fn(),
     updateRefreshToken: jest.fn(),
     findOne: jest.fn(),
+    findOneWithCondominios: jest.fn(),
   };
 
   const mockJwtService = {
@@ -33,7 +37,8 @@ describe('AuthService', () => {
   const mockConfigService = {
     get: jest.fn((key: string) => {
       if (key === 'JWT_SECRET') return 'test-secret-minimum-32-characters-long';
-      if (key === 'JWT_REFRESH_SECRET') return 'test-refresh-secret-minimum-32-characters-long';
+      if (key === 'JWT_REFRESH_SECRET')
+        return 'test-refresh-secret-minimum-32-characters-long';
       return null;
     }),
   };
@@ -47,7 +52,8 @@ describe('AuthService', () => {
     user.firstName = overrides?.firstName || 'Test';
     user.lastName = overrides?.lastName || 'User';
     user.role = overrides?.role || Role.USER;
-    user.isActive = overrides?.isActive !== undefined ? overrides.isActive : true;
+    user.isActive =
+      overrides?.isActive !== undefined ? overrides.isActive : true;
     user.refreshToken = overrides?.refreshToken || null;
     user.createdAt = new Date();
     user.updatedAt = new Date();
@@ -117,7 +123,9 @@ describe('AuthService', () => {
       expect(result).toHaveProperty('refreshToken', 'hashed-refresh-token');
       expect(result.user).not.toHaveProperty('password');
       expect(result.user).not.toHaveProperty('refreshToken');
-      expect(mockUsersService.findByEmail).toHaveBeenCalledWith(registerDto.email);
+      expect(mockUsersService.findByEmail).toHaveBeenCalledWith(
+        registerDto.email,
+      );
       expect(mockUsersService.create).toHaveBeenCalledWith({
         ...registerDto,
         role: undefined,
@@ -160,8 +168,15 @@ describe('AuthService', () => {
         isActive: true,
       });
       mockUser.validatePassword = jest.fn().mockResolvedValue(true);
+      const mockUserWithCondominios = {
+        ...mockUser,
+        condominios: [],
+      };
 
       mockUsersService.findByEmail.mockResolvedValue(mockUser);
+      mockUsersService.findOneWithCondominios.mockResolvedValue(
+        mockUserWithCondominios,
+      );
       mockJwtService.signAsync
         .mockResolvedValueOnce('access-token')
         .mockResolvedValueOnce('refresh-token');
@@ -175,7 +190,11 @@ describe('AuthService', () => {
       expect(result).toHaveProperty('user');
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
+      expect(result).toHaveProperty('condominios');
       expect(mockUser.validatePassword).toHaveBeenCalledWith(loginDto.password);
+      expect(mockUsersService.findOneWithCondominios).toHaveBeenCalledWith(
+        mockUser.id,
+      );
       expect(mockUsersService.updateRefreshToken).toHaveBeenCalled();
     });
 
@@ -247,7 +266,10 @@ describe('AuthService', () => {
       await service.logout(userId);
 
       // Assert
-      expect(mockUsersService.updateRefreshToken).toHaveBeenCalledWith(userId, null);
+      expect(mockUsersService.updateRefreshToken).toHaveBeenCalledWith(
+        userId,
+        null,
+      );
     });
   });
 
@@ -260,6 +282,10 @@ describe('AuthService', () => {
         id: userId,
         refreshToken: 'hashed-refresh-token',
       });
+
+      // Clear previous mocks
+      mockJwtService.signAsync.mockClear();
+      mockedBcrypt.hash.mockClear();
 
       mockUsersService.findOne.mockResolvedValue(mockUser);
       mockedBcrypt.compare.mockResolvedValue(true);
@@ -275,7 +301,10 @@ describe('AuthService', () => {
       // Assert
       expect(result).toHaveProperty('accessToken', 'new-access-token');
       expect(result).toHaveProperty('refreshToken', 'new-hashed-refresh-token');
-      expect(mockedBcrypt.compare).toHaveBeenCalledWith(refreshToken, mockUser.refreshToken);
+      expect(mockedBcrypt.compare).toHaveBeenCalledWith(
+        refreshToken,
+        mockUser.refreshToken,
+      );
       expect(mockUsersService.updateRefreshToken).toHaveBeenCalledWith(
         userId,
         'new-hashed-refresh-token',
@@ -332,4 +361,3 @@ describe('AuthService', () => {
     });
   });
 });
-

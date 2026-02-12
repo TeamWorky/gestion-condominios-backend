@@ -21,27 +21,22 @@ export const envValidationSchema = Joi.object({
   // Redis
   REDIS_HOST: Joi.string().default('localhost'),
   REDIS_PORT: Joi.number().default(6379),
-  
+
   // Cache configuration
   CACHE_TTL_USER: Joi.number().default(300), // 5 minutes
   CACHE_TTL_USER_LIST: Joi.number().default(60), // 1 minute
   CACHE_TTL_DEFAULT: Joi.number().default(300), // 5 minutes default
 
   // JWT Secrets - Critical for security
-  JWT_SECRET: Joi.string()
-    .min(32)
-    .required()
-    .messages({
-      'string.min': 'JWT_SECRET must have at least 32 characters for security',
-      'any.required': 'JWT_SECRET is required and cannot be empty',
-    }),
-  JWT_REFRESH_SECRET: Joi.string()
-    .min(32)
-    .required()
-    .messages({
-      'string.min': 'JWT_REFRESH_SECRET must have at least 32 characters for security',
-      'any.required': 'JWT_REFRESH_SECRET is required and cannot be empty',
-    }),
+  JWT_SECRET: Joi.string().min(32).required().messages({
+    'string.min': 'JWT_SECRET must have at least 32 characters for security',
+    'any.required': 'JWT_SECRET is required and cannot be empty',
+  }),
+  JWT_REFRESH_SECRET: Joi.string().min(32).required().messages({
+    'string.min':
+      'JWT_REFRESH_SECRET must have at least 32 characters for security',
+    'any.required': 'JWT_REFRESH_SECRET is required and cannot be empty',
+  }),
 
   // Admin user (optional, have default values)
   ADMIN_EMAIL: Joi.string().email().default('admin@admin.com'),
@@ -74,7 +69,7 @@ export const envValidationSchema = Joi.object({
   SMTP_SECURE: Joi.boolean().default(false),
   SMTP_FROM: Joi.string().optional(),
   SMTP_FROM_NAME: Joi.string().default('NestJS App'),
-  
+
   // Application URL (for email links)
   APP_URL: Joi.string().default('http://localhost:3000'),
 }).options({

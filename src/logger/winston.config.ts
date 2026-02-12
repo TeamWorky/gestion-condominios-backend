@@ -22,11 +22,15 @@ export const createWinstonConfig = (
         format: winston.format.combine(
           winston.format.timestamp(),
           winston.format.colorize(),
-          winston.format.printf(({ timestamp, level, message, context, ...meta }) => {
-            const contextStr = context ? `[${context}]` : '';
-            const metaStr = Object.keys(meta).length ? JSON.stringify(meta) : '';
-            return `${timestamp} ${level} ${contextStr} ${message} ${metaStr}`;
-          }),
+          winston.format.printf(
+            ({ timestamp, level, message, context, ...meta }) => {
+              const contextStr = context ? `[${context}]` : '';
+              const metaStr = Object.keys(meta).length
+                ? JSON.stringify(meta)
+                : '';
+              return `${timestamp} ${level} ${contextStr} ${message} ${metaStr}`;
+            },
+          ),
         ),
       }),
     );

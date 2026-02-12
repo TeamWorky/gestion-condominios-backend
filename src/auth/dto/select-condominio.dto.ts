@@ -3,10 +3,10 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class SelectCondominioDto {
   @ApiProperty({
-    example: '4b7bdcca-c9c3-439a-8c86-214384b2e815',
-    description: 'ID del condominio a seleccionar',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    description: 'Condominio ID to select',
   })
-  @IsNotEmpty()
   @IsUUID()
+  @IsNotEmpty()
   condominioId: string;
 }
