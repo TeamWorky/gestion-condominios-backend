@@ -6,7 +6,14 @@ import {
   UseGuards,
   Version,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { LogsService } from './logs.service';
 import { FilterLogsDto, LogLevel } from './dto/filter-logs.dto';
 import { ResponseUtil } from '../utils/response.util';
@@ -25,9 +32,10 @@ export class LogsController {
   @Get()
   @Version('1')
   @MinRole(Role.ADMIN)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get all logs with filters (Admin+)',
-    description: 'Retrieve logs with pagination and optional filters by level, context, requestId, or search term'
+    description:
+      'Retrieve logs with pagination and optional filters by level, context, requestId, or search term',
   })
   @ApiResponse({ status: 200, description: 'Logs retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -45,11 +53,15 @@ export class LogsController {
   @Get('stats')
   @Version('1')
   @MinRole(Role.ADMIN)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get log statistics (Admin+)',
-    description: 'Get statistics about logs: total count, count by level, and count by context'
+    description:
+      'Get statistics about logs: total count, count by level, and count by context',
   })
-  @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Statistics retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
   async getStats() {
@@ -60,9 +72,9 @@ export class LogsController {
   @Get('contexts')
   @Version('1')
   @MinRole(Role.ADMIN)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get all available contexts (Admin+)',
-    description: 'Get list of all unique contexts in the logs'
+    description: 'Get list of all unique contexts in the logs',
   })
   @ApiResponse({ status: 200, description: 'Contexts retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -89,11 +101,15 @@ export class LogsController {
   @Get('request/:requestId')
   @Version('1')
   @MinRole(Role.ADMIN)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get logs by request ID (Admin+)',
-    description: 'Get all logs associated with a specific request ID'
+    description: 'Get all logs associated with a specific request ID',
   })
-  @ApiParam({ name: 'requestId', description: 'Request ID', example: 'req-123' })
+  @ApiParam({
+    name: 'requestId',
+    description: 'Request ID',
+    example: 'req-123',
+  })
   @ApiResponse({ status: 200, description: 'Logs retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
@@ -105,22 +121,23 @@ export class LogsController {
   @Get('level/:level')
   @Version('1')
   @MinRole(Role.ADMIN)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get logs by level (Admin+)',
-    description: 'Get logs filtered by level (error, warn, info, debug, verbose)'
+    description:
+      'Get logs filtered by level (error, warn, info, debug, verbose)',
   })
-  @ApiParam({ 
-    name: 'level', 
-    description: 'Log level', 
+  @ApiParam({
+    name: 'level',
+    description: 'Log level',
     enum: LogLevel,
-    example: LogLevel.ERROR 
+    example: LogLevel.ERROR,
   })
-  @ApiQuery({ 
-    name: 'limit', 
-    required: false, 
-    type: Number, 
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
     description: 'Maximum number of logs to return',
-    example: 100
+    example: 100,
   })
   @ApiResponse({ status: 200, description: 'Logs retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })

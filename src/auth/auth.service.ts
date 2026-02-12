@@ -5,7 +5,10 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { UnauthorizedException, AlreadyExistsException } from '../common/exceptions/business.exception';
+import {
+  UnauthorizedException,
+  AlreadyExistsException,
+} from '../common/exceptions/business.exception';
 import { User } from '../users/entities/user.entity';
 
 @Injectable()
@@ -17,7 +20,9 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const existingUser = await this._usersService.findByEmail(registerDto.email);
+    const existingUser = await this._usersService.findByEmail(
+      registerDto.email,
+    );
 
     if (existingUser) {
       throw new AlreadyExistsException('Email');
@@ -29,27 +34,68 @@ export class AuthService {
     });
 
     const tokens = await this.generateTokens(user);
-    await this._usersService.updateRefreshToken(user.id, tokens.refreshToken);
+    await this._usersService.updateRefreshToken(user.id, tokens.hashedRefreshToken);
 
     const { password, refreshToken, ...result } = user;
 
     return {
       user: result,
-      ...tokens,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
     };
   }
 
   async login(loginDto: LoginDto) {
     const user = await this.validateUser(loginDto.email, loginDto.password);
 
-    const tokens = await this.generateTokens(user);
-    await this._usersService.updateRefreshToken(user.id, tokens.refreshToken);
+    // Cargar los condominios del usuario
+    const userWithCondominios = await this._usersService.findOneWithCondominios(
+      user.id,
+    );
 
-    const { password, refreshToken, ...result } = user;
+    const tokens = await this.generateTokens(user, null);
+    await this._usersService.updateRefreshToken(user.id, tokens.hashedRefreshToken);
+
+    const { password, refreshToken, ...result } = userWithCondominios;
+
+    const response = {
+      user: result,
+      condominios: result.condominios || [],
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
+
+    console.log('🔍 Login response structure:', JSON.stringify({
+      hasUser: !!response.user,
+      hasCondominios: !!response.condominios,
+      condominiosCount: response.condominios?.length,
+      hasAccessToken: !!response.accessToken,
+      hasRefreshToken: !!response.refreshToken,
+      userKeys: response.user ? Object.keys(response.user) : [],
+    }, null, 2));
+
+    return response;
+  }
+
+  async selectCondominio(userId: string, condominioId: string) {
+    const user = await this._usersService.findOneWithCondominios(userId);
+
+    // Verificar que el usuario tiene acceso a este condominio
+    const hasAccess = user.condominios?.some((c) => c.id === condominioId);
+
+    if (!hasAccess) {
+      throw new UnauthorizedException(
+        'User does not have access to this condominio',
+      );
+    }
+
+    // Generar nuevos tokens con el condominioId
+    const tokens = await this.generateTokens(user, condominioId);
+    await this._usersService.updateRefreshToken(user.id, tokens.hashedRefreshToken);
 
     return {
-      user: result,
-      ...tokens,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
     };
   }
 
@@ -64,16 +110,22 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const refreshTokenMatches = await bcrypt.compare(refreshToken, user.refreshToken);
+    const refreshTokenMatches = await bcrypt.compare(
+      refreshToken,
+      user.refreshToken,
+    );
 
     if (!refreshTokenMatches) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
     const tokens = await this.generateTokens(user);
-    await this._usersService.updateRefreshToken(user.id, tokens.refreshToken);
+    await this._usersService.updateRefreshToken(user.id, tokens.hashedRefreshToken);
 
-    return tokens;
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
   }
 
   private async validateUser(email: string, password: string): Promise<User> {
@@ -87,7 +139,10 @@ export class AuthService {
       throw new UnauthorizedException('User is inactive');
     }
 
-    const isPasswordValid = await user.validatePassword(password);
+    // Usar bcrypt directamente en lugar de user.validatePassword()
+    // porque el objeto puede venir de caché y no ser una instancia de User
+    const bcrypt = require('bcrypt');
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
@@ -96,15 +151,20 @@ export class AuthService {
     return user;
   }
 
-  private async generateTokens(user: User) {
+  private async generateTokens(user: User, condominioId: string | null = null) {
     const payload = {
       sub: user.id,
       email: user.email,
       role: user.role,
+      condominioId,
     };
 
-    const jwtSecret = this._configService.get<string>('JWT_SECRET') || 'default-secret-change-me';
-    const jwtRefreshSecret = this._configService.get<string>('JWT_REFRESH_SECRET') || 'default-refresh-secret-change-me';
+    const jwtSecret =
+      this._configService.get<string>('JWT_SECRET') ||
+      'default-secret-change-me';
+    const jwtRefreshSecret =
+      this._configService.get<string>('JWT_REFRESH_SECRET') ||
+      'default-refresh-secret-change-me';
 
     const [accessToken, refreshToken] = await Promise.all([
       this._jwtService.signAsync(payload, {
@@ -121,7 +181,8 @@ export class AuthService {
 
     return {
       accessToken,
-      refreshToken: hashedRefreshToken,
+      refreshToken, // Retornar el token plano al cliente
+      hashedRefreshToken, // El hash para guardar en la DB
     };
   }
 }

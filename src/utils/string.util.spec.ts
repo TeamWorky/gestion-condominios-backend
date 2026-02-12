@@ -127,7 +127,9 @@ describe('StringUtil', () => {
       // Assert
       expect(result).toContain('...');
       expect(result.length).toBeLessThanOrEqual(length + 3); // length + '...'
-      expect(result.substring(0, result.length - 3).length).toBeLessThanOrEqual(length);
+      expect(result.substring(0, result.length - 3).length).toBeLessThanOrEqual(
+        length,
+      );
     });
 
     it('should not truncate text shorter than length', () => {
@@ -304,4 +306,3 @@ describe('StringUtil', () => {
     });
   });
 });
-

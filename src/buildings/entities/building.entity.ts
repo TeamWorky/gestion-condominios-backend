@@ -1,7 +1,15 @@
-import { Entity, Column, ManyToOne, OneToMany, JoinColumn, Unique } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+  Unique,
+} from 'typeorm';
 import { BaseEntity } from '../../common/entities/base.entity';
 import { Condominium } from '../../condominiums/entities/condominium.entity';
 import { Unit } from '../../units/entities/unit.entity';
+import { CommonSpace } from '../../common-spaces/entities/common-space.entity';
 
 @Entity('buildings')
 @Unique(['condominiumId', 'code'])
@@ -9,7 +17,9 @@ export class Building extends BaseEntity {
   @Column({ type: 'uuid', name: 'condominium_id' })
   condominiumId: string;
 
-  @ManyToOne(() => Condominium, (condominium) => condominium.buildings, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Condominium, (condominium) => condominium.buildings, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'condominium_id' })
   condominium: Condominium;
 
@@ -36,4 +46,7 @@ export class Building extends BaseEntity {
 
   @OneToMany(() => Unit, (unit) => unit.building)
   units: Unit[];
+
+  @OneToMany(() => CommonSpace, (commonSpace) => commonSpace.building)
+  commonSpaces: CommonSpace[];
 }

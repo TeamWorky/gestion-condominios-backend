@@ -19,7 +19,10 @@ export class EmailQueueService {
   /**
    * Add email job to queue
    */
-  async addEmailJob(emailDto: SendEmailDto, options?: { delay?: number; priority?: number }): Promise<string> {
+  async addEmailJob(
+    emailDto: SendEmailDto,
+    options?: { delay?: number; priority?: number },
+  ): Promise<string> {
     const job = await this.emailQueue.add('send-email', emailDto, {
       attempts: 3, // Retry up to 3 times
       backoff: {
@@ -52,7 +55,11 @@ export class EmailQueueService {
   /**
    * Add welcome email to queue
    */
-  async sendWelcomeEmail(to: string, name: string, loginUrl?: string): Promise<string> {
+  async sendWelcomeEmail(
+    to: string,
+    name: string,
+    loginUrl?: string,
+  ): Promise<string> {
     return this.addEmailJob({
       to,
       subject: 'Welcome to our platform!',
@@ -67,7 +74,12 @@ export class EmailQueueService {
   /**
    * Add password reset email to queue
    */
-  async sendPasswordResetEmail(to: string, name: string, resetUrl: string, expiresIn = '1 hour'): Promise<string> {
+  async sendPasswordResetEmail(
+    to: string,
+    name: string,
+    resetUrl: string,
+    expiresIn = '1 hour',
+  ): Promise<string> {
     return this.addEmailJob({
       to,
       subject: 'Reset Your Password',
@@ -83,7 +95,12 @@ export class EmailQueueService {
   /**
    * Add email verification email to queue
    */
-  async sendEmailVerificationEmail(to: string, name: string, verifyUrl: string, expiresIn = '24 hours'): Promise<string> {
+  async sendEmailVerificationEmail(
+    to: string,
+    name: string,
+    verifyUrl: string,
+    expiresIn = '24 hours',
+  ): Promise<string> {
     return this.addEmailJob({
       to,
       subject: 'Verify Your Email Address',
@@ -120,10 +137,3 @@ export class EmailQueueService {
     };
   }
 }
-
-
-
-
-
-
-

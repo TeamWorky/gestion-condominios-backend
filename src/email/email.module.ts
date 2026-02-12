@@ -24,10 +24,3 @@ import { EmailTemplatesService } from './templates/email-templates.service';
   exports: [EmailService, EmailQueueService],
 })
 export class EmailModule {}
-
-
-
-
-
-
-
