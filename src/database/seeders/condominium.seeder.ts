@@ -5,9 +5,12 @@ import { Repository } from 'typeorm';
 import { Condominium } from '../../condominiums/entities/condominium.entity';
 import { Building } from '../../buildings/entities/building.entity';
 import { Unit } from '../../units/entities/unit.entity';
+import { User } from '../../users/entities/user.entity';
 import { UnitType } from '../../common/enums/unit-type.enum';
 import { UnitStatus } from '../../common/enums/unit-status.enum';
+import { Role } from '../../common/enums/role.enum';
 import { LoggerService } from '../../logger/logger.service';
+import { RedisCacheService } from '../../redis/redis-cache.service';
 
 @Injectable()
 export class CondominiumSeeder implements OnModuleInit {
@@ -18,8 +21,11 @@ export class CondominiumSeeder implements OnModuleInit {
     private readonly buildingRepository: Repository<Building>,
     @InjectRepository(Unit)
     private readonly unitRepository: Repository<Unit>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly configService: ConfigService,
     private readonly logger: LoggerService,
+    private readonly cache: RedisCacheService,
   ) {}
 
   async onModuleInit() {
@@ -47,6 +53,8 @@ export class CondominiumSeeder implements OnModuleInit {
           `Condominium data already exists (${existingCondominiums} records), skipping seed`,
           CondominiumSeeder.name,
         );
+        // Aún así, asegurar que todos los condominios estén asociados al SUPER_ADMIN
+        await this.associateAllCondominiumsToSuperAdmin();
         return;
       }
 
@@ -144,6 +152,9 @@ export class CondominiumSeeder implements OnModuleInit {
         }
       }
 
+      // Asociar el condominio al usuario SUPER_ADMIN
+      await this.associateCondominiumToSuperAdmin(savedCondominium.id);
+
       this.logger.warn(
         '✅ DEMO DATA CREATED SUCCESSFULLY',
         CondominiumSeeder.name,
@@ -159,6 +170,161 @@ export class CondominiumSeeder implements OnModuleInit {
         error.stack || error.message,
         CondominiumSeeder.name,
         { error: error.message },
+      );
+    }
+  }
+
+  /**
+   * Asocia todos los condominios existentes al usuario SUPER_ADMIN
+   */
+  private async associateAllCondominiumsToSuperAdmin(): Promise<void> {
+    try {
+      const adminEmail = this.configService.get<string>('ADMIN_EMAIL') || 'admin@admin.com';
+      const superAdmin = await this.userRepository.findOne({
+        where: { email: adminEmail, role: Role.SUPER_ADMIN },
+        relations: ['condominios'],
+      });
+
+      if (!superAdmin) {
+        this.logger.warn(
+          'Super admin user not found, skipping condominium association',
+          CondominiumSeeder.name,
+          { adminEmail },
+        );
+        return;
+      }
+
+      // Obtener todos los condominios activos
+      const allCondominiums = await this.condominiumRepository.find({
+        where: { isActive: true },
+      });
+
+      if (allCondominiums.length === 0) {
+        return;
+      }
+
+      // Obtener IDs de condominios ya asociados
+      const associatedIds = superAdmin.condominios?.map((c) => c.id) || [];
+
+      // Filtrar condominios que no están asociados
+      const condominiumsToAdd = allCondominiums.filter(
+        (c) => !associatedIds.includes(c.id),
+      );
+
+      if (condominiumsToAdd.length === 0) {
+        this.logger.log(
+          'All condominiums already associated to super admin',
+          CondominiumSeeder.name,
+        );
+        return;
+      }
+
+      // Asociar los condominios faltantes
+      if (!superAdmin.condominios) {
+        superAdmin.condominios = [];
+      }
+      superAdmin.condominios.push(...condominiumsToAdd);
+      await this.userRepository.save(superAdmin);
+
+      // Invalidar cache del usuario para forzar refresco de condominios
+      await this.cache.invalidate(`user:${superAdmin.id}`);
+      await this.cache.invalidate(`user:email:${superAdmin.email}`);
+
+      this.logger.log(
+        'All condominiums associated to super admin successfully',
+        CondominiumSeeder.name,
+        {
+          userId: superAdmin.id,
+          totalCondominiums: allCondominiums.length,
+          newlyAssociated: condominiumsToAdd.length,
+          condominiumNames: condominiumsToAdd.map((c) => c.name),
+        },
+      );
+    } catch (error) {
+      this.logger.error(
+        'Failed to associate all condominiums to super admin',
+        error.stack || error.message,
+        CondominiumSeeder.name,
+        { error: error.message },
+      );
+    }
+  }
+
+  /**
+   * Asocia un condominio al usuario SUPER_ADMIN
+   */
+  private async associateCondominiumToSuperAdmin(condominiumId: string): Promise<void> {
+    try {
+      // Buscar el usuario SUPER_ADMIN
+      const adminEmail = this.configService.get<string>('ADMIN_EMAIL') || 'admin@admin.com';
+      const superAdmin = await this.userRepository.findOne({
+        where: { email: adminEmail, role: Role.SUPER_ADMIN },
+        relations: ['condominios'],
+      });
+
+      if (!superAdmin) {
+        this.logger.warn(
+          'Super admin user not found, skipping condominium association',
+          CondominiumSeeder.name,
+          { adminEmail },
+        );
+        return;
+      }
+
+      // Verificar si ya está asociado
+      const isAlreadyAssociated = superAdmin.condominios?.some(
+        (c) => c.id === condominiumId,
+      );
+
+      if (isAlreadyAssociated) {
+        this.logger.log(
+          'Condominium already associated to super admin',
+          CondominiumSeeder.name,
+          { condominiumId, userId: superAdmin.id },
+        );
+        return;
+      }
+
+      // Obtener el condominio
+      const condominium = await this.condominiumRepository.findOne({
+        where: { id: condominiumId },
+      });
+
+      if (!condominium) {
+        this.logger.warn(
+          'Condominium not found for association',
+          CondominiumSeeder.name,
+          { condominiumId },
+        );
+        return;
+      }
+
+      // Asociar el condominio al super admin
+      if (!superAdmin.condominios) {
+        superAdmin.condominios = [];
+      }
+      superAdmin.condominios.push(condominium);
+      await this.userRepository.save(superAdmin);
+
+      // Invalidar cache del usuario para forzar refresco de condominios
+      await this.cache.invalidate(`user:${superAdmin.id}`);
+      await this.cache.invalidate(`user:email:${superAdmin.email}`);
+
+      this.logger.log(
+        'Condominium associated to super admin successfully',
+        CondominiumSeeder.name,
+        {
+          condominiumId,
+          condominiumName: condominium.name,
+          userId: superAdmin.id,
+        },
+      );
+    } catch (error) {
+      this.logger.error(
+        'Failed to associate condominium to super admin',
+        error.stack || error.message,
+        CondominiumSeeder.name,
+        { error: error.message, condominiumId },
       );
     }
   }

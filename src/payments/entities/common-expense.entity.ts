@@ -8,7 +8,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Condominio } from '../../condominios/entities/condominio.entity';
+import { Condominium } from '../../condominiums/entities/condominium.entity';
 
 /**
  * Entidad CommonExpense (Gasto Común)
@@ -43,12 +43,12 @@ export class CommonExpense {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  // Relación con Condominio
-  @ManyToOne(() => Condominio, {
+  // Relación con Condominium
+  @ManyToOne(() => Condominium, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'condominioId' })
-  condominio: Condominio;
+  condominium: Condominium;
 
   @Column({ type: 'uuid' })
   condominioId: string;

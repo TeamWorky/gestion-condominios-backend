@@ -5,7 +5,6 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { SelectCondominioDto } from './dto/select-condominio.dto';
-import { ResponseUtil } from '../utils/response.util';
 import {
   AlreadyExistsException,
   UnauthorizedException,
@@ -70,9 +69,7 @@ describe('AuthController', () => {
 
       // Assert
       expect(service.register).toHaveBeenCalledWith(registerDto);
-      expect(result).toEqual(
-        ResponseUtil.success(registerResult, 'User registered successfully'),
-      );
+      expect(result).toEqual(registerResult);
     });
 
     it('should throw AlreadyExistsException when email already exists', async () => {
@@ -120,9 +117,7 @@ describe('AuthController', () => {
 
       // Assert
       expect(service.login).toHaveBeenCalledWith(loginDto);
-      expect(result).toEqual(
-        ResponseUtil.success(loginResult, 'Login successful'),
-      );
+      expect(result).toEqual(loginResult);
     });
 
     it('should throw UnauthorizedException with invalid credentials', async () => {
@@ -173,9 +168,7 @@ describe('AuthController', () => {
         currentUser.sub,
         selectCondominioDto.condominioId,
       );
-      expect(result).toEqual(
-        ResponseUtil.success(tokens, 'Condominio selected successfully'),
-      );
+      expect(result).toEqual(tokens);
     });
 
     it('should throw UnauthorizedException when user has no access to condominio', async () => {
@@ -217,7 +210,7 @@ describe('AuthController', () => {
 
       // Assert
       expect(service.logout).toHaveBeenCalledWith(currentUser.sub);
-      expect(result).toEqual(ResponseUtil.success(null, 'Logout successful'));
+      expect(result).toEqual({ message: 'Logout successful' });
     });
   });
 
@@ -251,9 +244,7 @@ describe('AuthController', () => {
         currentUser.sub,
         refreshTokenDto.refreshToken,
       );
-      expect(result).toEqual(
-        ResponseUtil.success(tokens, 'Tokens refreshed successfully'),
-      );
+      expect(result).toEqual(tokens);
     });
 
     it('should throw UnauthorizedException with invalid refresh token', async () => {
