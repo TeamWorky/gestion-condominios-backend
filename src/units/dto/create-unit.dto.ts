@@ -68,6 +68,18 @@ export class CreateUnitDto {
   @IsOptional()
   bathrooms?: number;
 
+  @ApiPropertyOptional({ example: 1, description: 'Number of parking spots', default: 0 })
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  parkingSpots?: number;
+
+  @ApiPropertyOptional({ example: 1, description: 'Number of storage units', default: 0 })
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  storageUnits?: number;
+
   @ApiPropertyOptional({ enum: UnitStatus, example: UnitStatus.AVAILABLE, description: 'Unit status' })
   @IsEnum(UnitStatus)
   @IsOptional()

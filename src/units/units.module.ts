@@ -4,9 +4,14 @@ import { UnitsController } from './units.controller';
 import { UnitsService } from './units.service';
 import { Unit } from './entities/unit.entity';
 import { BuildingsModule } from '../buildings/buildings.module';
+import { CondominiumsModule } from '../condominiums/condominiums.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Unit]), BuildingsModule],
+  imports: [
+    TypeOrmModule.forFeature([Unit]),
+    BuildingsModule,
+    CondominiumsModule,
+  ],
   controllers: [UnitsController],
   providers: [UnitsService],
   exports: [UnitsService],

@@ -195,10 +195,9 @@ describe('EmailService', () => {
         templatesService,
       );
 
-      // Act & Assert
-      await expect(newService.sendEmail(emailDto)).rejects.toThrow(
-        'SMTP transporter not initialized',
-      );
+      // Act & Assert — el servicio retorna { sent: false } cuando no está configurado
+      const result = await newService.sendEmail(emailDto);
+      expect(result).toEqual(expect.objectContaining({ sent: false }));
     });
 
     it('should throw error when email content is missing', async () => {
@@ -226,8 +225,9 @@ describe('EmailService', () => {
       const error = new Error('SMTP connection failed');
       mockTransporter.sendMail.mockRejectedValue(error);
 
-      // Act & Assert
-      await expect(service.sendEmail(emailDto)).rejects.toThrow(error);
+      // Act & Assert — el servicio captura el error y retorna { sent: false }
+      const result = await service.sendEmail(emailDto);
+      expect(result).toEqual(expect.objectContaining({ sent: false }));
       expect(logger.error).toHaveBeenCalledWith(
         expect.stringContaining('Failed to send email'),
         error.stack,
@@ -491,7 +491,7 @@ describe('EmailService', () => {
 
       // Assert
       expect(logger.warn).toHaveBeenCalledWith(
-        'SMTP configuration incomplete. Email service will not work properly.',
+        'Email service disabled: SMTP configuration incomplete. Set EMAIL_ENABLED=false to suppress this warning.',
         EmailService.name,
         expect.any(Object),
       );
@@ -509,9 +509,8 @@ describe('EmailService', () => {
           setImmediate(() => {
             callback(error);
             // Assert after callback is called
-            expect(logger.error).toHaveBeenCalledWith(
-              'SMTP connection verification failed',
-              error.stack,
+            expect(logger.warn).toHaveBeenCalledWith(
+              expect.stringContaining('SMTP credentials invalid or server unreachable'),
               EmailService.name,
               expect.any(Object),
             );

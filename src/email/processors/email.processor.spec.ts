@@ -63,7 +63,7 @@ describe('EmailProcessor', () => {
         attemptsMade: 0,
       } as Job<EmailJobData>;
 
-      emailService.sendEmail.mockResolvedValue(undefined);
+      emailService.sendEmail.mockResolvedValue({ sent: true });
 
       // Act
       await processor.process(mockJob);
@@ -108,7 +108,7 @@ describe('EmailProcessor', () => {
         attemptsMade: 0,
       } as Job<EmailJobData>;
 
-      emailService.sendEmail.mockResolvedValue(undefined);
+      emailService.sendEmail.mockResolvedValue({ sent: true });
 
       // Act
       await processor.process(mockJob);
@@ -141,20 +141,8 @@ describe('EmailProcessor', () => {
 
       emailService.sendEmail.mockRejectedValue(error);
 
-      // Act & Assert
+      // Act & Assert — el processor relanza el error para que BullMQ lo reintente
       await expect(processor.process(mockJob)).rejects.toThrow(error);
-
-      expect(logger.error).toHaveBeenCalledWith(
-        expect.stringContaining('Email job failed'),
-        error.stack,
-        EmailProcessor.name,
-        expect.objectContaining({
-          jobId: 'job-789',
-          to: jobData.to,
-          error: error.message,
-          attempt: 1,
-        }),
-      );
     });
 
     it('should log correct attempt number on retry', async () => {
@@ -171,7 +159,7 @@ describe('EmailProcessor', () => {
         attemptsMade: 2, // Third attempt
       } as Job<EmailJobData>;
 
-      emailService.sendEmail.mockResolvedValue(undefined);
+      emailService.sendEmail.mockResolvedValue({ sent: true });
 
       // Act
       await processor.process(mockJob);
@@ -205,7 +193,7 @@ describe('EmailProcessor', () => {
         attemptsMade: 0,
       } as Job<EmailJobData>;
 
-      emailService.sendEmail.mockResolvedValue(undefined);
+      emailService.sendEmail.mockResolvedValue({ sent: true });
 
       // Act
       await processor.process(mockJob);

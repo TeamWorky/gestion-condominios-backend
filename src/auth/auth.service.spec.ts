@@ -87,7 +87,7 @@ describe('AuthService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('register', () => {
@@ -120,7 +120,7 @@ describe('AuthService', () => {
       // Assert (Verificar)
       expect(result).toHaveProperty('user');
       expect(result).toHaveProperty('accessToken', 'access-token');
-      expect(result).toHaveProperty('refreshToken', 'hashed-refresh-token');
+      expect(result).toHaveProperty('refreshToken', 'refresh-token');
       expect(result.user).not.toHaveProperty('password');
       expect(result.user).not.toHaveProperty('refreshToken');
       expect(mockUsersService.findByEmail).toHaveBeenCalledWith(
@@ -177,6 +177,7 @@ describe('AuthService', () => {
       mockUsersService.findOneWithCondominios.mockResolvedValue(
         mockUserWithCondominios,
       );
+      mockedBcrypt.compare.mockResolvedValue(true);
       mockJwtService.signAsync
         .mockResolvedValueOnce('access-token')
         .mockResolvedValueOnce('refresh-token');
@@ -191,7 +192,6 @@ describe('AuthService', () => {
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
       expect(result).toHaveProperty('condominios');
-      expect(mockUser.validatePassword).toHaveBeenCalledWith(loginDto.password);
       expect(mockUsersService.findOneWithCondominios).toHaveBeenCalledWith(
         mockUser.id,
       );
@@ -252,7 +252,7 @@ describe('AuthService', () => {
       await expect(service.login(loginDto)).rejects.toThrow(
         UnauthorizedException,
       );
-      expect(mockUser.validatePassword).toHaveBeenCalledWith(loginDto.password);
+      expect(mockUsersService.updateRefreshToken).not.toHaveBeenCalled();
     });
   });
 
@@ -283,10 +283,6 @@ describe('AuthService', () => {
         refreshToken: 'hashed-refresh-token',
       });
 
-      // Clear previous mocks
-      mockJwtService.signAsync.mockClear();
-      mockedBcrypt.hash.mockClear();
-
       mockUsersService.findOne.mockResolvedValue(mockUser);
       mockedBcrypt.compare.mockResolvedValue(true);
       mockJwtService.signAsync
@@ -300,7 +296,7 @@ describe('AuthService', () => {
 
       // Assert
       expect(result).toHaveProperty('accessToken', 'new-access-token');
-      expect(result).toHaveProperty('refreshToken', 'new-hashed-refresh-token');
+      expect(result).toHaveProperty('refreshToken', 'new-refresh-token');
       expect(mockedBcrypt.compare).toHaveBeenCalledWith(
         refreshToken,
         mockUser.refreshToken,

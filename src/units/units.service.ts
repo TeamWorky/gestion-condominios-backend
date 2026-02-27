@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Unit } from './entities/unit.entity';
@@ -10,6 +10,16 @@ import { SoftDeleteRepositoryHelper } from '../common/repositories/base.reposito
 import { LoggerService } from '../logger/logger.service';
 import { RedisCacheService } from '../redis/redis-cache.service';
 import { BuildingsService } from '../buildings/buildings.service';
+import { CondominiumsService } from '../condominiums/condominiums.service';
+
+// UUID validation regex
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function validateUUID(id: string): void {
+  if (!id || id === 'null' || !UUID_REGEX.test(id)) {
+    throw new BadRequestException('Invalid UUID format');
+  }
+}
 
 const CACHE_TTL = {
   UNIT: 300,
@@ -20,6 +30,8 @@ const CACHE_KEYS = {
   unit: (id: string) => `unit:${id}`,
   unitsByBuilding: (buildingId: string, page: number, limit: number) =>
     `units:building:${buildingId}:${page}:${limit}`,
+  unitsByCondominium: (condoId: string, page: number, limit: number) =>
+    `units:condo:${condoId}:${page}:${limit}`,
   unitListPattern: () => 'units:*',
 };
 
@@ -29,6 +41,7 @@ export class UnitsService {
     @InjectRepository(Unit)
     private readonly unitRepository: Repository<Unit>,
     private readonly buildingsService: BuildingsService,
+    private readonly condominiumsService: CondominiumsService,
     private readonly logger: LoggerService,
     private readonly cache: RedisCacheService,
   ) {}
@@ -61,6 +74,39 @@ export class UnitsService {
     });
 
     return savedUnit;
+  }
+
+  async findAllByCondominium(
+    condoId: string,
+    pagination: PaginationDto,
+  ): Promise<{ data: Unit[]; total: number }> {
+    await this.condominiumsService.findOne(condoId);
+
+    const { page = 1, limit = 10, includeDeleted = false } = pagination;
+    const cacheKey = CACHE_KEYS.unitsByCondominium(condoId, page, limit);
+
+    return this.cache.getOrSet(
+      cacheKey,
+      async () => {
+        const queryBuilder = this.unitRepository
+          .createQueryBuilder('unit')
+          .innerJoinAndSelect('unit.building', 'building')
+          .where('building.condominium_id = :condoId', { condoId })
+          .orderBy('building.name', 'ASC')
+          .addOrderBy('unit.floor', 'ASC')
+          .addOrderBy('unit.number', 'ASC')
+          .skip((page - 1) * limit)
+          .take(limit);
+
+        if (includeDeleted) {
+          queryBuilder.withDeleted();
+        }
+
+        const [data, total] = await queryBuilder.getManyAndCount();
+        return { data, total };
+      },
+      CACHE_TTL.UNIT_LIST,
+    );
   }
 
   async findAllByBuilding(
@@ -96,30 +142,23 @@ export class UnitsService {
   }
 
   async findOne(id: string, includeDeleted = false): Promise<Unit> {
-    if (includeDeleted) {
-      const unit = await SoftDeleteRepositoryHelper.findOneById(
-        this.unitRepository,
-        id,
-        { includeDeleted },
-      );
-
-      if (!unit) {
-        throw new NotFoundException('Unit');
-      }
-
-      return unit;
-    }
-
+    validateUUID(id);
+    
     const cacheKey = CACHE_KEYS.unit(id);
 
     return this.cache.getOrSet(
       cacheKey,
       async () => {
-        const unit = await SoftDeleteRepositoryHelper.findOneById(
-          this.unitRepository,
-          id,
-          { includeDeleted: false },
-        );
+        const queryBuilder = this.unitRepository
+          .createQueryBuilder('unit')
+          .innerJoinAndSelect('unit.building', 'building')
+          .where('unit.id = :id', { id });
+
+        if (includeDeleted) {
+          queryBuilder.withDeleted();
+        }
+
+        const unit = await queryBuilder.getOne();
 
         if (!unit) {
           throw new NotFoundException('Unit');
@@ -132,6 +171,7 @@ export class UnitsService {
   }
 
   async update(id: string, updateUnitDto: UpdateUnitDto): Promise<Unit> {
+    validateUUID(id);
     const unit = await this.findOne(id);
 
     // Check for unique number if number is being updated
@@ -161,6 +201,7 @@ export class UnitsService {
   }
 
   async remove(id: string): Promise<void> {
+    validateUUID(id);
     const unit = await this.findOne(id);
     await SoftDeleteRepositoryHelper.softDeleteEntity(this.unitRepository, unit);
 
