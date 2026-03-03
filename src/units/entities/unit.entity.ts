@@ -60,6 +60,12 @@ export class Unit extends BaseEntity {
   @Column({ type: 'int', nullable: true })
   bathrooms?: number;
 
+  @Column({ type: 'int', name: 'parking_spots', nullable: true, default: 0 })
+  parkingSpots?: number;
+
+  @Column({ type: 'int', name: 'storage_units', nullable: true, default: 0 })
+  storageUnits?: number;
+
   @Column({
     type: 'enum',
     enum: UnitStatus,

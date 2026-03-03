@@ -1,7 +1,6 @@
 import { DataSource } from 'typeorm';
 import { config } from 'dotenv';
 import { dataSourceOptions } from '../data-source';
-import { CondominiosSeeder } from './condominios.seeder';
 
 config();
 
@@ -12,9 +11,7 @@ async function runSeeder() {
     await dataSource.initialize();
     console.log('Database connected');
 
-    const seeder = new CondominiosSeeder();
-    await seeder.run(dataSource);
-
+    // El seeding de condominios se hace a través de CondominiumSeeder en el módulo
     console.log('✅ Seeding completed successfully');
   } catch (error) {
     console.error('❌ Error running seeder:', error);

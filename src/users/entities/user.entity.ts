@@ -9,7 +9,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { BaseEntity } from '../../common/entities/base.entity';
 import { Role } from '../../common/enums/role.enum';
-import { Condominio } from '../../condominios/entities/condominio.entity';
+import { Condominium } from '../../condominiums/entities/condominium.entity';
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -39,13 +39,13 @@ export class User extends BaseEntity {
   refreshToken?: string;
 
   // Relación Many-to-Many con Condominios
-  @ManyToMany(() => Condominio, { cascade: true })
+  @ManyToMany(() => Condominium, { cascade: true })
   @JoinTable({
     name: 'user_condominios',
     joinColumn: { name: 'userId', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'condominioId', referencedColumnName: 'id' },
   })
-  condominios: Condominio[];
+  condominios: Condominium[];
 
   @BeforeInsert()
   @BeforeUpdate()

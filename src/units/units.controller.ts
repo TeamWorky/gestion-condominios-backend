@@ -52,6 +52,21 @@ export class UnitsController {
     return ResponseUtil.success(unit, SUCCESS_MESSAGES.CREATED);
   }
 
+  @Get('condominiums/:condoId/units')
+  @Version('1')
+  @MinRole(Role.USER)
+  @ApiOperation({ summary: 'Get all units in a condominium (USER+)' })
+  @ApiResponse({ status: 200, description: 'Units retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Condominium not found' })
+  async findAllByCondominium(
+    @Param('condoId') condoId: string,
+    @Query() pagination: PaginationDto,
+  ) {
+    const { data, total } = await this.unitsService.findAllByCondominium(condoId, pagination);
+    return ResponseUtil.paginated(data, pagination.page || 1, pagination.limit || 10, total);
+  }
+
   @Get('buildings/:buildingId/units')
   @Version('1')
   @MinRole(Role.USER)

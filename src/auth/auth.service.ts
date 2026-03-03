@@ -65,15 +65,6 @@ export class AuthService {
       refreshToken: tokens.refreshToken,
     };
 
-    console.log('🔍 Login response structure:', JSON.stringify({
-      hasUser: !!response.user,
-      hasCondominios: !!response.condominios,
-      condominiosCount: response.condominios?.length,
-      hasAccessToken: !!response.accessToken,
-      hasRefreshToken: !!response.refreshToken,
-      userKeys: response.user ? Object.keys(response.user) : [],
-    }, null, 2));
-
     return response;
   }
 
